@@ -120,7 +120,7 @@ var Item = React.createClass({
     },
     render: function() {
         var cssClass = this.props.selected ? 'active' : '';
-        var sharedWith = _appData['accessIds'][this.props.item['shared_with']];
+        var sharedWith = _appData['accessIds'][this.props.item['access_id']];
 
         if (this.props.item['is_dir']) {
             return (
@@ -136,12 +136,12 @@ var Item = React.createClass({
                 </tr>
             );
         } else {
-            var modified_at = moment(this.props.item['modified_at']).format("DD-MM-YY HH:mm");
+            var modified_at = moment(this.props.item['time_updated']).format("DD-MM-YY HH:mm");
 
             return (
                 <tr onClick={this.handleSelect} className={cssClass}>
                     <td>
-                        <a href={"/lox_api/files" + this.props.item.path}>
+                        <a href={"/pleiofile/" + this.props.item.path}>
                             <span className="glyphicon glyphicon-file"></span>&nbsp;
                             {this.props.item.title}
                         </a>
@@ -280,7 +280,8 @@ var FolderCreate = React.createClass({
 var FileBrowser = React.createClass({
     getInitialState: function() {
         return {
-            path: '/28712902',
+            path: this.props.home,
+            breadcrumb: [],
             items: [],
             sortOn: 'title',
             sortAscending: true
@@ -291,10 +292,13 @@ var FileBrowser = React.createClass({
     },
     getItems: function() {
         $jq19.ajax({
-            url: '/lox_api/meta' + this.state.path,
+            url: '/pleiofile/browse/' + this.state.path,
             dataType: 'json',
             success: function(data) {
-                this.setState({items: data.children});
+                this.setState({
+                    breadcrumb: data.breadcrumb,
+                    items: data.children
+                });
             }.bind(this)
         });
     },
@@ -372,11 +376,8 @@ var FileBrowser = React.createClass({
         if (path[0] == '/') { path = path.slice(1); }
         if (path[-1] == '/') { path = path.slice(0, -1); }
 
-        var crumbs = path.split('/');
-        var breadcrumb = crumbs.map(function(crumb) {
-
-            var name = _appData['folderNames'][crumb];
-            return (<BreadcrumbItem key={crumb}>{name}</BreadcrumbItem>);
+        var breadcrumb = this.state.breadcrumb.map(function(crumb) {
+            return (<BreadcrumbItem key={crumb.guid}>{crumb.title}</BreadcrumbItem>);
         });
 
         return (
@@ -414,6 +415,6 @@ var FileBrowser = React.createClass({
 });
 
 ReactDOM.render(
-    <FileBrowser home='/28712902' />,
+    <FileBrowser home={'/' + _appData['containerGuid']} />,
     document.getElementById('pleiobox')
 );

@@ -16,6 +16,13 @@ function pleiofile_init() {
     elgg_register_css("pleiofile", "mod/pleiofile/static/css/pleiofile.css");
 
     elgg_register_page_handler("files", "pleiofile_file_page_handler");
+    elgg_register_page_handler("pleiofile", "pleiofile_page_handler");
+
+    $base = dirname(__FILE__) . "/actions/";
+    elgg_register_action("pleiofile/create_folder", $base . "create_folder");
+    elgg_register_action("pleiofile/delete", $base . "delete");
+    elgg_register_action("pleiofile/download", $base . "download");
+    elgg_register_action("pleiofile/upload", $base . "upload");
 }
 
 elgg_register_event_handler('init', 'system', 'pleiofile_init');
@@ -30,4 +37,18 @@ function pleiofile_file_page_handler($url) {
     }
 
     return true;
+}
+
+function pleiofile_page_handler($url) {
+    gatekeeper();
+
+    switch ($url[0]) {
+        case "browse":
+            set_input('path', array_slice($url, 1));
+            include("api/browse.php");
+            return true;
+            break;
+    }
+
+    return false;
 }

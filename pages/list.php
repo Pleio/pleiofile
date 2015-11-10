@@ -25,9 +25,9 @@ if ($page_owner instanceof ElggGroup) {
 }
 
 $data = array(
+    'containerGuid' => $page_owner->getGUID(),
     'accessIds' => get_write_access_array(),
-    'defaultAccessId' => get_default_access(),
-    'folderNames' => array(28712902 => 'Informatie voor groepsbeheerders')
+    'defaultAccessId' => get_default_access()
 );
 
 $params['content'] = "<script> var _appData = " . json_encode($data) . "; </script>";
