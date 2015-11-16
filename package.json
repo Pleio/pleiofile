@@ -7,6 +7,7 @@
     "react": "^0.14.0",
     "react-dom": "^0.14.0",
     "react-bootstrap": "^0.27.0",
+    "react-router": "^1.0.0",
     "immutable": "^3.7.0",
     "moment": "^2.10.0",
     "gulp": "^3.9.0",
@@ -22,6 +23,7 @@
     "babel-preset-react": "^6.1.0",
     "lodash.assign": "^3.2.0",
     "vinyl-source-stream": "0.4.6",
-    "vinyl-buffer": "1.0.0"
+    "vinyl-buffer": "1.0.0",
+    "browser-sync": "2.10.0"
   }
 }
