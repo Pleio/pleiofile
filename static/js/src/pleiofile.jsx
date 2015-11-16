@@ -30,7 +30,7 @@ var FileList = React.createClass({
         this.state.selected.map(function(item) {
             $jq19.ajax({
                 method: 'POST',
-                url: '/lox_api/operations/delete',
+                url: '/' + elgg.security.addToken("action/pleiofile/delete"),
                 data: {
                     'path': item.path
                 },
@@ -71,8 +71,8 @@ var FileList = React.createClass({
         } else {
             var columns = {
                 'title': 'Naam',
-                'modified_at': 'Gewijzigd',
-                'shared_with': 'Gedeeld met'
+                'time_updated': 'Gewijzigd',
+                'access_id': 'Gedeeld met'
             };
 
             var header = $jq19.map(columns, function(value, key) {
@@ -199,11 +199,19 @@ var FileUpload = React.createClass({
 
         var total = this.state.files.length;
         for (var i=0; i < this.state.files.length; i++) {
-            $jq19.ajax({
-                method: 'POST',
-                url: '/lox_api/files' + this.props.path + '/' + this.state.files[i].name,
-                data: this.state.files[i],
+
+            var data = new FormData();
+            data.append('file', this.state.files[i]);
+            data.append('access_id', this.state.accessId);
+            data.append('path', this.props.path);
+
+            var options = {
+                url: '/' + elgg.security.addToken("action/pleiofile/upload"),
+                data: data,
+                contentType: false,
+                cache: false,
                 processData: false,
+                type: 'POST',
                 success: function(data) {
                     total -= 1;
                     if (total === 0) {
@@ -211,7 +219,9 @@ var FileUpload = React.createClass({
                         this.close();
                     }
                 }.bind(this)
-            });
+            };
+
+            $jq19.ajax(options);
         }
     }
 });
@@ -263,9 +273,11 @@ var FolderCreate = React.createClass({
 
         $jq19.ajax({
             method: 'POST',
-            url: '/lox_api/operations/create_folder',
+            url: '/' + elgg.security.addToken("action/pleiofile/create_folder"),
             data: {
-                'path': this.props.path + '/' + this.state.title
+                'path': this.props.path,
+                'title': this.state.title,
+                'access_id': this.state.accessId
             },
             success: function(data) {
                 this.setState({

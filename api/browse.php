@@ -6,7 +6,6 @@ $path = get_input('path');
 
 $container_guid = $path[0];
 $container_path = array_slice($path, 1);
-
 $container = get_entity($container_guid);
 
 if ($container) {

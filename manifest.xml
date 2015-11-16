@@ -21,9 +21,8 @@
   </requires>
 
   <requires>
-    <type>priority</type>
-    <plugin>file_tools</plugin>
-    <priority>after</priority>
+    <type>plugin</type>
+    <name>odt_editor</name>
   </requires>
 
   <category>Pleio</category>

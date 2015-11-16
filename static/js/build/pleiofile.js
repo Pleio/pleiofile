@@ -42405,7 +42405,7 @@ var FileList = React.createClass({
         this.state.selected.map((function (item) {
             $jq19.ajax({
                 method: 'POST',
-                url: '/lox_api/operations/delete',
+                url: '/' + elgg.security.addToken("action/pleiofile/delete"),
                 data: {
                     'path': item.path
                 },
@@ -42434,12 +42434,33 @@ var FileList = React.createClass({
         }).bind(this));
 
         if (this.state.selected.size > 0) {
-            var header = React.createElement('th', { colSpan: '3' }, this.state.selected.size, ' bestanden geselecteerd.  ', React.createElement('span', { className: 'glyphicon glyphicon-edit' }), ' ', React.createElement('a', { href: 'javascript:void(0);', onClick: this.editFiles }, 'Wijzigen'), '    ', React.createElement('span', { className: 'glyphicon glyphicon-trash' }), ' ', React.createElement('a', { href: 'javascript:void(0);', onClick: this.deleteItems }, 'Verwijderen'), ' ');
+            var header = React.createElement(
+                'th',
+                { colSpan: '3' },
+                this.state.selected.size,
+                ' bestanden geselecteerd.  ',
+                React.createElement('span', { className: 'glyphicon glyphicon-edit' }),
+                ' ',
+                React.createElement(
+                    'a',
+                    { href: 'javascript:void(0);', onClick: this.editFiles },
+                    'Wijzigen'
+                ),
+                '    ',
+                React.createElement('span', { className: 'glyphicon glyphicon-trash' }),
+                ' ',
+                React.createElement(
+                    'a',
+                    { href: 'javascript:void(0);', onClick: this.deleteItems },
+                    'Verwijderen'
+                ),
+                ' '
+            );
         } else {
             var columns = {
                 'title': 'Naam',
-                'modified_at': 'Gewijzigd',
-                'shared_with': 'Gedeeld met'
+                'time_updated': 'Gewijzigd',
+                'access_id': 'Gedeeld met'
             };
 
             var header = $jq19.map(columns, (function (value, key) {
@@ -42453,11 +42474,38 @@ var FileList = React.createClass({
                     var glyphicon = "";
                 }
 
-                return React.createElement('th', { key: key }, React.createElement('a', { href: 'javascript:void(0);', onClick: this.sort.bind(this, key) }, value), ' ', React.createElement('span', { className: "glyphicon " + glyphicon }));
+                return React.createElement(
+                    'th',
+                    { key: key },
+                    React.createElement(
+                        'a',
+                        { href: 'javascript:void(0);', onClick: this.sort.bind(this, key) },
+                        value
+                    ),
+                    ' ',
+                    React.createElement('span', { className: "glyphicon " + glyphicon })
+                );
             }).bind(this));
         }
 
-        return React.createElement('table', { className: 'table table-hover' }, React.createElement('thead', null, React.createElement('tr', null, header)), React.createElement('tbody', null, items));
+        return React.createElement(
+            'table',
+            { className: 'table table-hover' },
+            React.createElement(
+                'thead',
+                null,
+                React.createElement(
+                    'tr',
+                    null,
+                    header
+                )
+            ),
+            React.createElement(
+                'tbody',
+                null,
+                items
+            )
+        );
     }
 });
 
@@ -42474,11 +42522,59 @@ var Item = React.createClass({
         var sharedWith = _appData['accessIds'][this.props.item['access_id']];
 
         if (this.props.item['is_dir']) {
-            return React.createElement('tr', { onClick: this.handleSelect, className: cssClass }, React.createElement('td', null, React.createElement('a', { href: 'javascript:void(0);', onClick: this.openFolder }, React.createElement('span', { className: 'glyphicon glyphicon-folder-close' }), ' ', this.props.item.title)), React.createElement('td', null, '-'), React.createElement('td', null, sharedWith));
+            return React.createElement(
+                'tr',
+                { onClick: this.handleSelect, className: cssClass },
+                React.createElement(
+                    'td',
+                    null,
+                    React.createElement(
+                        'a',
+                        { href: 'javascript:void(0);', onClick: this.openFolder },
+                        React.createElement('span', { className: 'glyphicon glyphicon-folder-close' }),
+                        ' ',
+                        this.props.item.title
+                    )
+                ),
+                React.createElement(
+                    'td',
+                    null,
+                    '-'
+                ),
+                React.createElement(
+                    'td',
+                    null,
+                    sharedWith
+                )
+            );
         } else {
             var modified_at = moment(this.props.item['time_updated']).format("DD-MM-YY HH:mm");
 
-            return React.createElement('tr', { onClick: this.handleSelect, className: cssClass }, React.createElement('td', null, React.createElement('a', { href: "/pleiofile/" + this.props.item.path }, React.createElement('span', { className: 'glyphicon glyphicon-file' }), ' ', this.props.item.title)), React.createElement('td', null, modified_at), React.createElement('td', null, sharedWith));
+            return React.createElement(
+                'tr',
+                { onClick: this.handleSelect, className: cssClass },
+                React.createElement(
+                    'td',
+                    null,
+                    React.createElement(
+                        'a',
+                        { href: "/pleiofile/" + this.props.item.path },
+                        React.createElement('span', { className: 'glyphicon glyphicon-file' }),
+                        ' ',
+                        this.props.item.title
+                    )
+                ),
+                React.createElement(
+                    'td',
+                    null,
+                    modified_at
+                ),
+                React.createElement(
+                    'td',
+                    null,
+                    sharedWith
+                )
+            );
         }
     }
 });
@@ -42499,10 +42595,45 @@ var FileUpload = React.createClass({
     },
     render: function render() {
         var accessOptions = $jq19.map(_appData['accessIds'], function (value, key) {
-            return React.createElement('option', { key: key, value: key }, value);
+            return React.createElement(
+                'option',
+                { key: key, value: key },
+                value
+            );
         });
 
-        return React.createElement('div', null, React.createElement(Modal, { show: this.state.showModal, onHide: this.close }, React.createElement(Modal.Header, { closeButton: true }, React.createElement(Modal.Title, null, 'Upload een bestand')), React.createElement(Modal.Body, null, React.createElement('form', { onSubmit: this.upload }, React.createElement(Input, { type: 'file', multiple: true, label: 'Bestand(en)', name: 'files', onChange: this.changeFiles }), React.createElement(Input, { type: 'select', ref: 'accessId', label: 'Toegang', value: this.state.accessId, onChange: this.changeAccessId }, accessOptions), React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: 'Uploaden' })))));
+        return React.createElement(
+            'div',
+            null,
+            React.createElement(
+                Modal,
+                { show: this.state.showModal, onHide: this.close },
+                React.createElement(
+                    Modal.Header,
+                    { closeButton: true },
+                    React.createElement(
+                        Modal.Title,
+                        null,
+                        'Upload een bestand'
+                    )
+                ),
+                React.createElement(
+                    Modal.Body,
+                    null,
+                    React.createElement(
+                        'form',
+                        { onSubmit: this.upload },
+                        React.createElement(Input, { type: 'file', multiple: true, label: 'Bestand(en)', name: 'files', onChange: this.changeFiles }),
+                        React.createElement(
+                            Input,
+                            { type: 'select', ref: 'accessId', label: 'Toegang', value: this.state.accessId, onChange: this.changeAccessId },
+                            accessOptions
+                        ),
+                        React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: 'Uploaden' })
+                    )
+                )
+            )
+        );
     },
     changeFiles: function changeFiles(e) {
         this.setState({ files: e.target.files });
@@ -42515,11 +42646,19 @@ var FileUpload = React.createClass({
 
         var total = this.state.files.length;
         for (var i = 0; i < this.state.files.length; i++) {
-            $jq19.ajax({
-                method: 'POST',
-                url: '/lox_api/files' + this.props.path + '/' + this.state.files[i].name,
-                data: this.state.files[i],
+
+            var data = new FormData();
+            data.append('file', this.state.files[i]);
+            data.append('access_id', this.state.accessId);
+            data.append('path', this.props.path);
+
+            var options = {
+                url: '/' + elgg.security.addToken("action/pleiofile/upload"),
+                data: data,
+                contentType: false,
+                cache: false,
                 processData: false,
+                type: 'POST',
                 success: (function (data) {
                     total -= 1;
                     if (total === 0) {
@@ -42527,7 +42666,9 @@ var FileUpload = React.createClass({
                         this.close();
                     }
                 }).bind(this)
-            });
+            };
+
+            $jq19.ajax(options);
         }
     }
 });
@@ -42549,10 +42690,45 @@ var FolderCreate = React.createClass({
     render: function render() {
 
         var accessOptions = $jq19.map(_appData['accessIds'], function (value, key) {
-            return React.createElement('option', { key: key, value: key }, value);
+            return React.createElement(
+                'option',
+                { key: key, value: key },
+                value
+            );
         });
 
-        return React.createElement('div', null, React.createElement(Modal, { show: this.state.showModal, onHide: this.close }, React.createElement(Modal.Header, { closeButton: true }, React.createElement(Modal.Title, null, 'Maak een map')), React.createElement(Modal.Body, null, React.createElement('form', { onSubmit: this.create }, React.createElement(Input, { type: 'text', ref: 'title', label: 'Naam', value: this.state.title, onChange: this.changeTitle }), React.createElement(Input, { type: 'select', ref: 'accessId', label: 'Toegang', value: this.state.accessId, onChange: this.changeAccessId }, accessOptions), React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: 'Aanmaken' })))));
+        return React.createElement(
+            'div',
+            null,
+            React.createElement(
+                Modal,
+                { show: this.state.showModal, onHide: this.close },
+                React.createElement(
+                    Modal.Header,
+                    { closeButton: true },
+                    React.createElement(
+                        Modal.Title,
+                        null,
+                        'Maak een map'
+                    )
+                ),
+                React.createElement(
+                    Modal.Body,
+                    null,
+                    React.createElement(
+                        'form',
+                        { onSubmit: this.create },
+                        React.createElement(Input, { type: 'text', ref: 'title', label: 'Naam', value: this.state.title, onChange: this.changeTitle }),
+                        React.createElement(
+                            Input,
+                            { type: 'select', ref: 'accessId', label: 'Toegang', value: this.state.accessId, onChange: this.changeAccessId },
+                            accessOptions
+                        ),
+                        React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: 'Aanmaken' })
+                    )
+                )
+            )
+        );
     },
     changeTitle: function changeTitle(e) {
         this.setState({ title: e.target.value });
@@ -42566,9 +42742,11 @@ var FolderCreate = React.createClass({
 
         $jq19.ajax({
             method: 'POST',
-            url: '/lox_api/operations/create_folder',
+            url: '/' + elgg.security.addToken("action/pleiofile/create_folder"),
             data: {
-                'path': this.props.path + '/' + this.state.title
+                'path': this.props.path,
+                'title': this.state.title,
+                'access_id': this.state.accessId
             },
             success: (function (data) {
                 this.setState({
@@ -42684,10 +42862,57 @@ var FileBrowser = React.createClass({
         }
 
         var breadcrumb = this.state.breadcrumb.map(function (crumb) {
-            return React.createElement(BreadcrumbItem, { key: crumb.guid }, crumb.title);
+            return React.createElement(
+                BreadcrumbItem,
+                { key: crumb.guid },
+                crumb.title
+            );
         });
 
-        return React.createElement('div', null, React.createElement('div', { className: 'pleiobox-breadcrumb' }, React.createElement(Breadcrumb, null, React.createElement(BreadcrumbItem, { href: 'javascript:void(0);', onClick: this.toHome }, 'Home'), breadcrumb)), React.createElement('div', { className: 'pleiobox-btn-group' }, React.createElement(DropdownButton, { id: 'new', title: 'Toevoegen', pullRight: true }, React.createElement(MenuItem, { onClick: this.fileNew }, 'Nieuw bestand'), React.createElement(MenuItem, { onClick: this.fileUpload }, 'Bestand uploaden'), React.createElement(MenuItem, { onClick: this.folderCreate }, 'Nieuwe map'))), React.createElement(FileList, { items: this.state.items, onComplete: this.getItems, onOpenFolder: this.openFolder, onSort: this.sort, sortOn: this.state.sortOn, sortAscending: this.state.sortAscending }), React.createElement(FileUpload, { ref: 'fileUpload', path: this.state.path, onComplete: this.getItems }), React.createElement(FolderCreate, { ref: 'folderCreate', path: this.state.path, onComplete: this.getItems }));
+        return React.createElement(
+            'div',
+            null,
+            React.createElement(
+                'div',
+                { className: 'pleiobox-breadcrumb' },
+                React.createElement(
+                    Breadcrumb,
+                    null,
+                    React.createElement(
+                        BreadcrumbItem,
+                        { href: 'javascript:void(0);', onClick: this.toHome },
+                        'Home'
+                    ),
+                    breadcrumb
+                )
+            ),
+            React.createElement(
+                'div',
+                { className: 'pleiobox-btn-group' },
+                React.createElement(
+                    DropdownButton,
+                    { id: 'new', title: 'Toevoegen', pullRight: true },
+                    React.createElement(
+                        MenuItem,
+                        { onClick: this.fileNew },
+                        'Nieuw bestand'
+                    ),
+                    React.createElement(
+                        MenuItem,
+                        { onClick: this.fileUpload },
+                        'Bestand uploaden'
+                    ),
+                    React.createElement(
+                        MenuItem,
+                        { onClick: this.folderCreate },
+                        'Nieuwe map'
+                    )
+                )
+            ),
+            React.createElement(FileList, { items: this.state.items, onComplete: this.getItems, onOpenFolder: this.openFolder, onSort: this.sort, sortOn: this.state.sortOn, sortAscending: this.state.sortAscending }),
+            React.createElement(FileUpload, { ref: 'fileUpload', path: this.state.path, onComplete: this.getItems }),
+            React.createElement(FolderCreate, { ref: 'folderCreate', path: this.state.path, onComplete: this.getItems })
+        );
     },
     fileNew: function fileNew() {
         window.open('/odt_editor/create' + this.state.path, '_blank');

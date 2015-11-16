@@ -25,6 +25,10 @@ h6 { font-size: 0.8em; }
     height: 183px;
 }
 
+.elgg-menu ol, ul {
+    margin-bottom: 0;
+}
+
 .pleiobox-breadcrumb {
     float: left;
 }
