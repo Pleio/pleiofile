@@ -388,17 +388,21 @@ var FileBrowser = React.createClass({
         if (path[0] == '/') { path = path.slice(1); }
         if (path[-1] == '/') { path = path.slice(0, -1); }
 
+        var breadPath = this.props.home;
         var breadcrumb = this.state.breadcrumb.map(function(crumb) {
-            return (<BreadcrumbItem key={crumb.guid}>{crumb.title}</BreadcrumbItem>);
-        });
+            breadPath += "/" + crumb.guid;
+            return (
+                <BreadcrumbItem key={crumb.guid} path={breadPath} title={crumb.title} onOpenFolder={this.openFolder} />
+            );
+        }.bind(this));
+
+        var home = ( <BreadcrumbItem key="0" path={this.props.home} title="Home" onOpenFolder={this.openFolder} /> );
+        breadcrumb.unshift(home);
 
         return (
             <div>
                 <div className="pleiobox-breadcrumb">
                     <Breadcrumb>
-                        <BreadcrumbItem href="javascript:void(0);" onClick={this.toHome}>
-                            Home
-                        </BreadcrumbItem>
                         {breadcrumb}
                     </Breadcrumb>
                 </div>
@@ -423,6 +427,21 @@ var FileBrowser = React.createClass({
     },
     folderCreate: function() {
         this.refs['folderCreate'].open();
+    }
+});
+
+var BreadcrumbItem = React.createClass({
+    onOpenFolder: function() {
+        this.props.onOpenFolder(this.props.path);
+    },
+    render: function() {
+        return (
+            <li>
+                <a href="javascript:void(0);" onClick={this.onOpenFolder}>
+                    {this.props.title}
+                </a>
+            </li>
+        )
     }
 });
 

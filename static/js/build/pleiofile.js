@@ -42861,13 +42861,14 @@ var FileBrowser = React.createClass({
             path = path.slice(0, -1);
         }
 
-        var breadcrumb = this.state.breadcrumb.map(function (crumb) {
-            return React.createElement(
-                BreadcrumbItem,
-                { key: crumb.guid },
-                crumb.title
-            );
-        });
+        var breadPath = this.props.home;
+        var breadcrumb = this.state.breadcrumb.map((function (crumb) {
+            breadPath += "/" + crumb.guid;
+            return React.createElement(BreadcrumbItem, { key: crumb.guid, path: breadPath, title: crumb.title, onOpenFolder: this.openFolder });
+        }).bind(this));
+
+        var home = React.createElement(BreadcrumbItem, { key: '0', path: this.props.home, title: 'Home', onOpenFolder: this.openFolder });
+        breadcrumb.unshift(home);
 
         return React.createElement(
             'div',
@@ -42878,11 +42879,6 @@ var FileBrowser = React.createClass({
                 React.createElement(
                     Breadcrumb,
                     null,
-                    React.createElement(
-                        BreadcrumbItem,
-                        { href: 'javascript:void(0);', onClick: this.toHome },
-                        'Home'
-                    ),
                     breadcrumb
                 )
             ),
@@ -42922,6 +42918,23 @@ var FileBrowser = React.createClass({
     },
     folderCreate: function folderCreate() {
         this.refs['folderCreate'].open();
+    }
+});
+
+var BreadcrumbItem = React.createClass({
+    onOpenFolder: function onOpenFolder() {
+        this.props.onOpenFolder(this.props.path);
+    },
+    render: function render() {
+        return React.createElement(
+            'li',
+            null,
+            React.createElement(
+                'a',
+                { href: 'javascript:void(0);', onClick: this.onOpenFolder },
+                this.props.title
+            )
+        );
     }
 });
 
