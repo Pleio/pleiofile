@@ -18336,7 +18336,7 @@ $export($export.S, 'Object', {setPrototypeOf: require('./$.set-proto').set});
 		module.exports = classNames;
 	} else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
 		// register as 'classnames', consistent with npm package name
-		define('classnames', function () {
+		define('classnames', [], function () {
 			return classNames;
 		});
 	} else {
@@ -23142,7 +23142,8 @@ function set(component, propName, handler, value, args) {
   }
 
   component._values[propName] = value;
-  component.forceUpdate();
+
+  if (component.isMounted()) component.forceUpdate();
 }
 
 exports['default'] = _createUncontrollable2['default']([mixin], set);
@@ -23156,8 +23157,6 @@ module.exports = exports['default'];
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
- *
- * @providesModule invariant
  */
 
 'use strict';
@@ -23191,9 +23190,9 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
       var args = [a, b, c, d, e, f];
       var argIndex = 0;
       error = new Error(
-        'Invariant Violation: ' +
         format.replace(/%s/g, function() { return args[argIndex++]; })
       );
+      error.name = 'Invariant Violation';
     }
 
     error.framesToPop = 1; // we don't care about invariant's own frame
@@ -26658,6 +26657,7 @@ var HTMLDOMPropertyConfig = {
     multiple: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
     muted: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
     name: null,
+    nonce: MUST_USE_ATTRIBUTE,
     noValidate: HAS_BOOLEAN_VALUE,
     open: HAS_BOOLEAN_VALUE,
     optimum: null,
@@ -26669,6 +26669,7 @@ var HTMLDOMPropertyConfig = {
     readOnly: MUST_USE_PROPERTY | HAS_BOOLEAN_VALUE,
     rel: null,
     required: HAS_BOOLEAN_VALUE,
+    reversed: HAS_BOOLEAN_VALUE,
     role: MUST_USE_ATTRIBUTE,
     rows: MUST_USE_ATTRIBUTE | HAS_POSITIVE_NUMERIC_VALUE,
     rowSpan: null,
@@ -27116,6 +27117,7 @@ assign(React, {
 });
 
 React.__SECRET_DOM_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactDOM;
+React.__SECRET_DOM_SERVER_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactDOMServer;
 
 module.exports = React;
 },{"./Object.assign":263,"./ReactDOM":276,"./ReactDOMServer":286,"./ReactIsomorphic":304,"./deprecated":347}],266:[function(require,module,exports){
@@ -37355,7 +37357,7 @@ module.exports = ReactUpdates;
 
 'use strict';
 
-module.exports = '0.14.2';
+module.exports = '0.14.3';
 },{}],326:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -42387,6 +42389,8 @@ var Set = require('immutable').Set;
 var moment = require('moment');
 
 var FileList = React.createClass({
+    displayName: 'FileList',
+
     getInitialState: function getInitialState() {
         return {
             selected: new Set()
@@ -42395,14 +42399,9 @@ var FileList = React.createClass({
     sort: function sort(on) {
         this.props.onSort(on);
     },
-    clearSelected: function clearSelected() {
-        this.setState({
-            selected: this.state.selected.clear()
-        });
-    },
     deleteItems: function deleteItems() {
-        var total = this.state.selected.size;
-        this.state.selected.map((function (item) {
+        var total = this.props.selected.size;
+        this.props.selected.map((function (item) {
             $jq19.ajax({
                 method: 'POST',
                 url: '/' + elgg.security.addToken("action/pleiofile/delete"),
@@ -42423,6 +42422,11 @@ var FileList = React.createClass({
         this.clearSelected();
         this.props.onOpenFolder(path);
     },
+    onDragStart: function onDragStart(item) {
+        this.setState({
+            selected: this.state.selected.add(item)
+        });
+    },
     toggleItem: function toggleItem(item) {
         this.setState({
             selected: this.state.selected.has(item) ? this.state.selected.delete(item) : this.state.selected.add(item)
@@ -42430,37 +42434,60 @@ var FileList = React.createClass({
     },
     render: function render() {
         var items = this.props.items.map((function (item) {
-            return React.createElement(Item, { key: item.path, item: item, selected: this.state.selected.has(item), onSelect: this.toggleItem, onOpenFolder: this.onOpenFolder });
+            return React.createElement(Item, {
+                key: item.path,
+                item: item,
+                selected: this.state.selected.has(item),
+                onSelect: this.toggleItem,
+                onDragStart: this.onDragStart,
+                onOpenFolder: this.onOpenFolder });
         }).bind(this));
 
         if (this.state.selected.size > 0) {
-            var header = React.createElement(
-                'th',
-                { colSpan: '3' },
-                this.state.selected.size,
-                ' bestanden geselecteerd.  ',
-                React.createElement('span', { className: 'glyphicon glyphicon-edit' }),
-                ' ',
-                React.createElement(
-                    'a',
-                    { href: 'javascript:void(0);', onClick: this.editFiles },
-                    'Wijzigen'
-                ),
-                '    ',
-                React.createElement('span', { className: 'glyphicon glyphicon-trash' }),
-                ' ',
-                React.createElement(
-                    'a',
-                    { href: 'javascript:void(0);', onClick: this.deleteItems },
-                    'Verwijderen'
-                ),
-                ' '
-            );
+            if (this.state.selected.size == 1) {
+                var header = React.createElement(
+                    'th',
+                    { colSpan: '3' },
+                    this.state.selected.size,
+                    ' items geselecteerd.  ',
+                    React.createElement('span', { className: 'glyphicon glyphicon-edit' }),
+                    ' ',
+                    React.createElement(
+                        'a',
+                        { href: 'javascript:void(0);', onClick: this.editFiles },
+                        elgg.echo('edit')
+                    ),
+                    '    ',
+                    React.createElement('span', { className: 'glyphicon glyphicon-trash' }),
+                    ' ',
+                    React.createElement(
+                        'a',
+                        { href: 'javascript:void(0);', onClick: this.deleteItems },
+                        elgg.echo('delete')
+                    ),
+                    ' '
+                );
+            } else {
+                var header = React.createElement(
+                    'th',
+                    { colSpan: '3' },
+                    this.state.selected.size,
+                    ' items geselecteerd.  ',
+                    React.createElement('span', { className: 'glyphicon glyphicon-trash' }),
+                    ' ',
+                    React.createElement(
+                        'a',
+                        { href: 'javascript:void(0);', onClick: this.deleteItems },
+                        elgg.echo('delete')
+                    ),
+                    ' '
+                );
+            }
         } else {
             var columns = {
-                'title': 'Naam',
-                'time_updated': 'Gewijzigd',
-                'access_id': 'Gedeeld met'
+                'title': elgg.echo('pleiofile:name'),
+                'time_updated': elgg.echo('pleiofile:modified_at'),
+                'access_id': elgg.echo('pleiofile:shared_with')
             };
 
             var header = $jq19.map(columns, (function (value, key) {
@@ -42510,12 +42537,17 @@ var FileList = React.createClass({
 });
 
 var Item = React.createClass({
+    displayName: 'Item',
+
     openFolder: function openFolder(e) {
         e.stopPropagation();
         this.props.onOpenFolder(this.props.item.path);
     },
     handleSelect: function handleSelect() {
         this.props.onSelect(this.props.item);
+    },
+    handleDragStart: function handleDragStart() {
+        this.props.onDragStart(this.props.item);
     },
     render: function render() {
         var cssClass = this.props.selected ? 'active' : '';
@@ -42524,7 +42556,7 @@ var Item = React.createClass({
         if (this.props.item['is_dir']) {
             return React.createElement(
                 'tr',
-                { onClick: this.handleSelect, className: cssClass },
+                { onClick: this.handleSelect, onDragStart: this.handleDragStart, className: cssClass },
                 React.createElement(
                     'td',
                     null,
@@ -42580,6 +42612,7 @@ var Item = React.createClass({
 });
 
 var FileUpload = React.createClass({
+    displayName: 'FileUpload',
     getInitialState: function getInitialState() {
         return {
             showModal: false,
@@ -42614,7 +42647,7 @@ var FileUpload = React.createClass({
                     React.createElement(
                         Modal.Title,
                         null,
-                        'Upload een bestand'
+                        elgg.echo('pleiofile:upload_file')
                     )
                 ),
                 React.createElement(
@@ -42623,10 +42656,10 @@ var FileUpload = React.createClass({
                     React.createElement(
                         'form',
                         { onSubmit: this.upload },
-                        React.createElement(Input, { type: 'file', multiple: true, label: 'Bestand(en)', name: 'files', onChange: this.changeFiles }),
+                        React.createElement(Input, { type: 'file', multiple: true, label: elgg.echo('pleiofile:files'), name: 'files', onChange: this.changeFiles }),
                         React.createElement(
                             Input,
-                            { type: 'select', ref: 'accessId', label: 'Toegang', value: this.state.accessId, onChange: this.changeAccessId },
+                            { type: 'select', ref: 'accessId', label: elgg.echo('access'), value: this.state.accessId, onChange: this.changeAccessId },
                             accessOptions
                         ),
                         React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: 'Uploaden' })
@@ -42674,6 +42707,7 @@ var FileUpload = React.createClass({
 });
 
 var FolderCreate = React.createClass({
+    displayName: 'FolderCreate',
     getInitialState: function getInitialState() {
         return {
             showModal: false,
@@ -42709,7 +42743,7 @@ var FolderCreate = React.createClass({
                     React.createElement(
                         Modal.Title,
                         null,
-                        'Maak een map'
+                        elgg.echo('pleiofile:create_folder')
                     )
                 ),
                 React.createElement(
@@ -42718,13 +42752,13 @@ var FolderCreate = React.createClass({
                     React.createElement(
                         'form',
                         { onSubmit: this.create },
-                        React.createElement(Input, { type: 'text', ref: 'title', label: 'Naam', value: this.state.title, onChange: this.changeTitle }),
+                        React.createElement(Input, { type: 'text', ref: 'title', label: elgg.echo('pleiofile:name'), value: this.state.title, onChange: this.changeTitle, autoFocus: 'true' }),
                         React.createElement(
                             Input,
-                            { type: 'select', ref: 'accessId', label: 'Toegang', value: this.state.accessId, onChange: this.changeAccessId },
+                            { type: 'select', ref: 'accessId', label: elgg.echo('access'), value: this.state.accessId, onChange: this.changeAccessId },
                             accessOptions
                         ),
-                        React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: 'Aanmaken' })
+                        React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: elgg.echo('create') })
                     )
                 )
             )
@@ -42759,17 +42793,25 @@ var FolderCreate = React.createClass({
 });
 
 var FileBrowser = React.createClass({
+    displayName: 'FileBrowser',
+
     getInitialState: function getInitialState() {
         return {
             path: this.props.home,
             breadcrumb: [],
             items: [],
+            selected: new Set(),
             sortOn: 'title',
             sortAscending: true
         };
     },
     componentDidMount: function componentDidMount() {
         this.getItems();
+    },
+    clearSelected: function clearSelected() {
+        this.setState({
+            selected: this.state.selected.clear()
+        });
     },
     getItems: function getItems() {
         $jq19.ajax({
@@ -42887,25 +42929,25 @@ var FileBrowser = React.createClass({
                 { className: 'pleiobox-btn-group' },
                 React.createElement(
                     DropdownButton,
-                    { id: 'new', title: 'Toevoegen', pullRight: true },
+                    { id: 'new', title: elgg.echo('add'), pullRight: true },
                     React.createElement(
                         MenuItem,
                         { onClick: this.fileNew },
-                        'Nieuw bestand'
+                        elgg.echo('pleiofile:create_file')
                     ),
                     React.createElement(
                         MenuItem,
                         { onClick: this.fileUpload },
-                        'Bestand uploaden'
+                        elgg.echo('pleiofile:upload_file')
                     ),
                     React.createElement(
                         MenuItem,
                         { onClick: this.folderCreate },
-                        'Nieuwe map'
+                        elgg.echo('pleiofile:create_folder')
                     )
                 )
             ),
-            React.createElement(FileList, { items: this.state.items, onComplete: this.getItems, onOpenFolder: this.openFolder, onSort: this.sort, sortOn: this.state.sortOn, sortAscending: this.state.sortAscending }),
+            React.createElement(FileList, { items: this.state.items, selected: this.state.selected, onComplete: this.getItems, onOpenFolder: this.openFolder, onSort: this.sort, sortOn: this.state.sortOn, sortAscending: this.state.sortAscending }),
             React.createElement(FileUpload, { ref: 'fileUpload', path: this.state.path, onComplete: this.getItems }),
             React.createElement(FolderCreate, { ref: 'folderCreate', path: this.state.path, onComplete: this.getItems })
         );
@@ -42922,6 +42964,8 @@ var FileBrowser = React.createClass({
 });
 
 var BreadcrumbItem = React.createClass({
+    displayName: 'BreadcrumbItem',
+
     onOpenFolder: function onOpenFolder() {
         this.props.onOpenFolder(this.props.path);
     },

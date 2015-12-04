@@ -20,14 +20,9 @@ var FileList = React.createClass({
     sort: function(on) {
         this.props.onSort(on);
     },
-    clearSelected: function() {
-        this.setState({
-            selected: this.state.selected.clear()
-        });
-    },
     deleteItems: function() {
-        var total = this.state.selected.size;
-        this.state.selected.map(function(item) {
+        var total = this.props.selected.size;
+        this.props.selected.map(function(item) {
             $jq19.ajax({
                 method: 'POST',
                 url: '/' + elgg.security.addToken("action/pleiofile/delete"),
@@ -48,6 +43,11 @@ var FileList = React.createClass({
         this.clearSelected();
         this.props.onOpenFolder(path);
     },
+    onDragStart: function(item) {
+        this.setState({
+            selected: this.state.selected.add(item)
+        })
+    },
     toggleItem: function(item) {
         this.setState({
             selected: this.state.selected.has(item) ? this.state.selected.delete(item) : this.state.selected.add(item)
@@ -55,24 +55,40 @@ var FileList = React.createClass({
     },
     render: function() {
         var items = this.props.items.map(function(item) {
-            return (<Item key={item.path} item={item} selected={this.state.selected.has(item)} onSelect={this.toggleItem} onOpenFolder={this.onOpenFolder} />);
+            return (<Item
+                key={item.path}
+                item={item}
+                selected={this.state.selected.has(item)}
+                onSelect={this.toggleItem}
+                onDragStart={this.onDragStart}
+                onOpenFolder={this.onOpenFolder} />);
         }.bind(this));
 
         if (this.state.selected.size > 0) {
-            var header = (
-                <th colSpan="3">
-                    {this.state.selected.size} bestanden geselecteerd.&nbsp;&nbsp;
-                    <span className="glyphicon glyphicon-edit"></span>&nbsp;
-                        <a href="javascript:void(0);" onClick={this.editFiles}>Wijzigen</a>&nbsp;&nbsp;&nbsp;&nbsp;
-                    <span className="glyphicon glyphicon-trash"></span>&nbsp;
-                        <a href="javascript:void(0);" onClick={this.deleteItems}>Verwijderen</a>&nbsp;
-                </th>
-            );
+            if (this.state.selected.size == 1) {
+                var header = (
+                    <th colSpan="3">
+                        {this.state.selected.size} items geselecteerd.&nbsp;&nbsp;
+                        <span className="glyphicon glyphicon-edit"></span>&nbsp;
+                            <a href="javascript:void(0);" onClick={this.editFiles}>{elgg.echo('edit')}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                        <span className="glyphicon glyphicon-trash"></span>&nbsp;
+                            <a href="javascript:void(0);" onClick={this.deleteItems}>{elgg.echo('delete')}</a>&nbsp;
+                    </th>
+                );
+            } else {
+                var header = (
+                    <th colSpan="3">
+                        {this.state.selected.size} items geselecteerd.&nbsp;&nbsp;
+                        <span className="glyphicon glyphicon-trash"></span>&nbsp;
+                            <a href="javascript:void(0);" onClick={this.deleteItems}>{elgg.echo('delete')}</a>&nbsp;
+                    </th>
+                );
+            }
         } else {
             var columns = {
-                'title': 'Naam',
-                'time_updated': 'Gewijzigd',
-                'access_id': 'Gedeeld met'
+                'title': elgg.echo('pleiofile:name'),
+                'time_updated': elgg.echo('pleiofile:modified_at'),
+                'access_id': elgg.echo('pleiofile:shared_with')
             };
 
             var header = $jq19.map(columns, function(value, key) {
@@ -89,7 +105,7 @@ var FileList = React.createClass({
                 return (
                     <th key={key}>
                         <a href="javascript:void(0);" onClick={this.sort.bind(this, key)}>{value}</a>&nbsp;
-                        <span className={"glyphicon " +     glyphicon}></span>
+                        <span className={"glyphicon " + glyphicon}></span>
                     </th>
                 );
             }.bind(this));
@@ -118,13 +134,16 @@ var Item = React.createClass({
     handleSelect: function() {
         this.props.onSelect(this.props.item);
     },
+    handleDragStart: function() {
+        this.props.onDragStart(this.props.item);
+    },
     render: function() {
         var cssClass = this.props.selected ? 'active' : '';
         var sharedWith = _appData['accessIds'][this.props.item['access_id']];
 
         if (this.props.item['is_dir']) {
             return (
-                <tr onClick={this.handleSelect} className={cssClass}>
+                <tr onClick={this.handleSelect} onDragStart={this.handleDragStart} className={cssClass}>
                     <td>
                         <a href="javascript:void(0);" onClick={this.openFolder}>
                             <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
@@ -173,12 +192,12 @@ var FileUpload = React.createClass({
             <div>
                 <Modal show={this.state.showModal} onHide={this.close}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Upload een bestand</Modal.Title>
+                        <Modal.Title>{elgg.echo('pleiofile:upload_file')}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <form onSubmit={this.upload}>
-                            <Input type="file" multiple label="Bestand(en)" name="files" onChange={this.changeFiles} />
-                            <Input type="select" ref="accessId" label="Toegang" value={this.state.accessId} onChange={this.changeAccessId}>
+                            <Input type="file" multiple label={elgg.echo('pleiofile:files')} name="files" onChange={this.changeFiles} />
+                            <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
                             <ButtonInput type="submit" bsStyle="primary" value="Uploaden" />
@@ -246,15 +265,15 @@ var FolderCreate = React.createClass({
             <div>
                 <Modal show={this.state.showModal} onHide={this.close}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Maak een map</Modal.Title>
+                        <Modal.Title>{elgg.echo('pleiofile:create_folder')}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <form onSubmit={this.create}>
-                            <Input type="text" ref="title" label="Naam" value={this.state.title} onChange={this.changeTitle} />
-                            <Input type="select" ref="accessId" label="Toegang" value={this.state.accessId} onChange={this.changeAccessId}>
+                            <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} value={this.state.title} onChange={this.changeTitle} autoFocus="true" />
+                            <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
-                            <ButtonInput type="submit" bsStyle="primary" value="Aanmaken" />
+                            <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('create')} />
                         </form>
                     </Modal.Body>
                 </Modal>
@@ -295,12 +314,18 @@ var FileBrowser = React.createClass({
             path: this.props.home,
             breadcrumb: [],
             items: [],
+            selected: new Set(),
             sortOn: 'title',
             sortAscending: true
         }
     },
     componentDidMount: function() {
         this.getItems();
+    },
+    clearSelected: function() {
+        this.setState({
+            selected: this.state.selected.clear()
+        });
     },
     getItems: function() {
         $jq19.ajax({
@@ -407,13 +432,13 @@ var FileBrowser = React.createClass({
                     </Breadcrumb>
                 </div>
                 <div className="pleiobox-btn-group">
-                    <DropdownButton id="new" title="Toevoegen" pullRight={true}>
-                        <MenuItem onClick={this.fileNew}>Nieuw bestand</MenuItem>
-                        <MenuItem onClick={this.fileUpload}>Bestand uploaden</MenuItem>
-                        <MenuItem onClick={this.folderCreate}>Nieuwe map</MenuItem>
+                    <DropdownButton id="new" title={elgg.echo('add')} pullRight={true}>
+                        <MenuItem onClick={this.fileNew}>{elgg.echo('pleiofile:create_file')}</MenuItem>
+                        <MenuItem onClick={this.fileUpload}>{elgg.echo('pleiofile:upload_file')}</MenuItem>
+                        <MenuItem onClick={this.folderCreate}>{elgg.echo('pleiofile:create_folder')}</MenuItem>
                     </DropdownButton>
                 </div>
-                <FileList items={this.state.items} onComplete={this.getItems} onOpenFolder={this.openFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
+                <FileList items={this.state.items} selected={this.state.selected} onComplete={this.getItems} onOpenFolder={this.openFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
                 <FileUpload ref="fileUpload" path={this.state.path} onComplete={this.getItems} />
                 <FolderCreate ref="folderCreate" path={this.state.path} onComplete={this.getItems} />
             </div>

@@ -11,6 +11,7 @@ function pleiofile_init() {
     elgg_register_js("jquery-19", "https://code.jquery.com/jquery-1.9.1.min.js", 'head', -100);
     elgg_register_js("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js", 'head', -99);
     elgg_register_js("jquery-noconflict", "mod/pleiofile/static/js/build/jquery-noconflict.js", 'head', -98);
+    elgg_register_js("formdata-polyfill", "mod/pleiofile/static/js/formdata-polyfill.js", 'head', -97);
 
     elgg_register_css("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
     elgg_register_css("pleiofile", "mod/pleiofile/static/css/pleiofile.css");

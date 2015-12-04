@@ -4,6 +4,7 @@ global $CONFIG;
 
 elgg_load_js('jquery-19');
 elgg_load_js('jquery-noconflict');
+elgg_load_js('formdata-polyfill');
 elgg_load_js('bootstrap');
 
 elgg_load_css('bootstrap');

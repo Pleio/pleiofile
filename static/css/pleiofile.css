@@ -21,10 +21,6 @@ h4 { font-size: 1.0em; }
 h5 { font-size: 0.9em; }
 h6 { font-size: 0.8em; }
 
-.elgg-page-default .elgg-page-header > .elgg-inner {
-    height: 183px;
-}
-
 .elgg-menu ol, ul {
     margin-bottom: 0;
 }
