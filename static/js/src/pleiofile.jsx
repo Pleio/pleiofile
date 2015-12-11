@@ -14,8 +14,67 @@ var moment = require('moment');
 var FileList = React.createClass({
     getInitialState: function() {
         return {
-            selected: new Set()
+            selected: new Set(),
+            clickSelecting: false,
+            dragSelecting: false
         };
+    },
+    componentDidMount: function() {
+        window.addEventListener("keydown", this.handleKeyDown);
+        window.addEventListener("keyup", this.handleKeyUp);
+
+        // also stop selecting outside the elements
+        window.addEventListener("mouseup", this.onMouseUp);
+
+        var clearSelection = function(e) {
+            var c = $('.table')[0];
+            if (!$.contains(c, e.target)) {
+                this.setState({
+                    selected: new Set()
+                });
+            }
+        }.bind(this);
+
+        $('html').mousedown(clearSelection);
+    },
+    handleKeyDown: function(e) {
+        if (e.shiftKey) { this.setState({ clickSelecting: true }); }
+    },
+    handleKeyUp: function(e) {
+        this.setState({ clickSelecting: false });
+    },
+    componentWillUpdate: function(nextProps, nextState) {
+        // do not select site text when selecting elements
+        if (nextState.clickSelecting | nextState.dragSelecting) {
+            $('html').disableSelection();
+        } else {
+            $('html').enableSelection();
+        }
+    },
+    onMouseDown: function(e, item) {
+        if (this.state.clickSelecting) {
+            this.setState({
+                selected: this.state.selected.has(item) ? this.state.selected.delete(item) : this.state.selected.add(item)
+            });
+        } else {
+            this.setState({
+                dragSelecting: true,
+                selected: new Set().add(item)
+            });
+        }
+    },
+    onMouseOver: function(e, item) {
+        if (this.state.dragSelecting) {
+            this.setState({
+                selected: this.state.selected.has(item) ? this.state.selected.delete(item) : this.state.selected.add(item)
+            })
+        }
+    },
+    onMouseUp: function(e, item) {
+        this.setState({ dragSelecting: false });
+    },
+    onMouseClick: function(e, item) {
+
     },
     clearSelected: function() {
         this.setState({
@@ -48,24 +107,16 @@ var FileList = React.createClass({
         this.clearSelected();
         this.props.onOpenFolder(path);
     },
-    onDragStart: function(item) {
-        this.setState({
-            selected: this.state.selected.add(item)
-        })
-    },
-    toggleItem: function(item) {
-        this.setState({
-            selected: this.state.selected.has(item) ? this.state.selected.delete(item) : this.state.selected.add(item)
-        });
-    },
     render: function() {
         var items = this.props.items.map(function(item) {
             return (<Item
                 key={item.path}
                 item={item}
                 selected={this.state.selected.has(item)}
-                onSelect={this.toggleItem}
-                onDragStart={this.onDragStart}
+                onMouseClick={this.onMouseClick}
+                onMouseDown={this.onMouseDown}
+                onMouseOver={this.onMouseOver}
+                onMouseUp={this.onMouseUp}
                 onOpenFolder={this.onOpenFolder} />);
         }.bind(this));
 
@@ -136,11 +187,17 @@ var Item = React.createClass({
         e.stopPropagation();
         this.props.onOpenFolder(this.props.item.path);
     },
-    handleSelect: function() {
-        this.props.onSelect(this.props.item);
+    onMouseClick: function(e) {
+        this.props.onMouseClick(e, this.props.item);
     },
-    handleDragStart: function() {
-        this.props.onDragStart(this.props.item);
+    onMouseDown: function(e) {
+        this.props.onMouseDown(e, this.props.item);
+    },
+    onMouseOver: function(e) {
+        this.props.onMouseOver(e, this.props.item);
+    },
+    onMouseUp: function(e) {
+        this.props.onMouseUp(e, this.props.item);
     },
     render: function() {
         var cssClass = this.props.selected ? 'active' : '';
@@ -148,7 +205,7 @@ var Item = React.createClass({
 
         if (this.props.item['is_dir']) {
             return (
-                <tr onClick={this.handleSelect} onDragStart={this.handleDragStart} className={cssClass}>
+                <tr onClick={this.onMouseClick} onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
                     <td>
                         <a href="javascript:void(0);" onClick={this.openFolder}>
                             <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
@@ -163,7 +220,7 @@ var Item = React.createClass({
             var modified_at = moment(this.props.item['time_updated']).format("DD-MM-YY HH:mm");
 
             return (
-                <tr onClick={this.handleSelect} className={cssClass}>
+                <tr onClick={this.onMouseClick} onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
                     <td>
                         <a href={"/pleiofile/" + this.props.item.path}>
                             <span className="glyphicon glyphicon-file"></span>&nbsp;
