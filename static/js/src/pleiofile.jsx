@@ -17,12 +17,17 @@ var FileList = React.createClass({
             selected: new Set()
         };
     },
+    clearSelected: function() {
+        this.setState({
+            selected: this.state.selected.clear()
+        });
+    },
     sort: function(on) {
         this.props.onSort(on);
     },
     deleteItems: function() {
-        var total = this.props.selected.size;
-        this.props.selected.map(function(item) {
+        var total = this.state.selected.size;
+        this.state.selected.map(function(item) {
             $jq19.ajax({
                 method: 'POST',
                 url: '/' + elgg.security.addToken("action/pleiofile/delete"),
@@ -314,18 +319,12 @@ var FileBrowser = React.createClass({
             path: this.props.home,
             breadcrumb: [],
             items: [],
-            selected: new Set(),
             sortOn: 'title',
             sortAscending: true
         }
     },
     componentDidMount: function() {
         this.getItems();
-    },
-    clearSelected: function() {
-        this.setState({
-            selected: this.state.selected.clear()
-        });
     },
     getItems: function() {
         $jq19.ajax({
@@ -438,7 +437,7 @@ var FileBrowser = React.createClass({
                         <MenuItem onClick={this.folderCreate}>{elgg.echo('pleiofile:create_folder')}</MenuItem>
                     </DropdownButton>
                 </div>
-                <FileList items={this.state.items} selected={this.state.selected} onComplete={this.getItems} onOpenFolder={this.openFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
+                <FileList items={this.state.items} onComplete={this.getItems} onOpenFolder={this.openFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
                 <FileUpload ref="fileUpload" path={this.state.path} onComplete={this.getItems} />
                 <FolderCreate ref="folderCreate" path={this.state.path} onComplete={this.getItems} />
             </div>

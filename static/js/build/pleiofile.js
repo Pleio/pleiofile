@@ -42396,12 +42396,17 @@ var FileList = React.createClass({
             selected: new Set()
         };
     },
+    clearSelected: function clearSelected() {
+        this.setState({
+            selected: this.state.selected.clear()
+        });
+    },
     sort: function sort(on) {
         this.props.onSort(on);
     },
     deleteItems: function deleteItems() {
-        var total = this.props.selected.size;
-        this.props.selected.map((function (item) {
+        var total = this.state.selected.size;
+        this.state.selected.map((function (item) {
             $jq19.ajax({
                 method: 'POST',
                 url: '/' + elgg.security.addToken("action/pleiofile/delete"),
@@ -42800,18 +42805,12 @@ var FileBrowser = React.createClass({
             path: this.props.home,
             breadcrumb: [],
             items: [],
-            selected: new Set(),
             sortOn: 'title',
             sortAscending: true
         };
     },
     componentDidMount: function componentDidMount() {
         this.getItems();
-    },
-    clearSelected: function clearSelected() {
-        this.setState({
-            selected: this.state.selected.clear()
-        });
     },
     getItems: function getItems() {
         $jq19.ajax({
@@ -42947,7 +42946,7 @@ var FileBrowser = React.createClass({
                     )
                 )
             ),
-            React.createElement(FileList, { items: this.state.items, selected: this.state.selected, onComplete: this.getItems, onOpenFolder: this.openFolder, onSort: this.sort, sortOn: this.state.sortOn, sortAscending: this.state.sortAscending }),
+            React.createElement(FileList, { items: this.state.items, onComplete: this.getItems, onOpenFolder: this.openFolder, onSort: this.sort, sortOn: this.state.sortOn, sortAscending: this.state.sortAscending }),
             React.createElement(FileUpload, { ref: 'fileUpload', path: this.state.path, onComplete: this.getItems }),
             React.createElement(FolderCreate, { ref: 'folderCreate', path: this.state.path, onComplete: this.getItems })
         );
