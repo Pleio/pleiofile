@@ -26,16 +26,14 @@ var FileList = React.createClass({
         // also stop selecting outside the elements
         window.addEventListener("mouseup", this.onMouseUp);
 
-        var clearSelection = function(e) {
+        $('html').mousedown(function(e) {
             var c = $('.table')[0];
             if (!$.contains(c, e.target)) {
                 this.setState({
                     selected: new Set()
                 });
             }
-        }.bind(this);
-
-        $('html').mousedown(clearSelection);
+        }.bind(this));
     },
     handleKeyDown: function(e) {
         if (e.shiftKey) { this.setState({ clickSelecting: true }); }
@@ -49,6 +47,11 @@ var FileList = React.createClass({
             $('html').disableSelection();
         } else {
             $('html').enableSelection();
+        }
+
+        // clear selection when changing folders
+        if (nextProps.items !== this.items) {
+            this.state.selected = new Set();
         }
     },
     onMouseDown: function(e, item) {
@@ -73,14 +76,6 @@ var FileList = React.createClass({
     onMouseUp: function(e, item) {
         this.setState({ dragSelecting: false });
     },
-    onMouseClick: function(e, item) {
-
-    },
-    clearSelected: function() {
-        this.setState({
-            selected: this.state.selected.clear()
-        });
-    },
     sort: function(on) {
         this.props.onSort(on);
     },
@@ -104,7 +99,6 @@ var FileList = React.createClass({
         }.bind(this));
     },
     onOpenFolder: function(path) {
-        this.clearSelected();
         this.props.onOpenFolder(path);
     },
     render: function() {
@@ -113,7 +107,6 @@ var FileList = React.createClass({
                 key={item.path}
                 item={item}
                 selected={this.state.selected.has(item)}
-                onMouseClick={this.onMouseClick}
                 onMouseDown={this.onMouseDown}
                 onMouseOver={this.onMouseOver}
                 onMouseUp={this.onMouseUp}
@@ -187,9 +180,6 @@ var Item = React.createClass({
         e.stopPropagation();
         this.props.onOpenFolder(this.props.item.path);
     },
-    onMouseClick: function(e) {
-        this.props.onMouseClick(e, this.props.item);
-    },
     onMouseDown: function(e) {
         this.props.onMouseDown(e, this.props.item);
     },
@@ -205,7 +195,7 @@ var Item = React.createClass({
 
         if (this.props.item['is_dir']) {
             return (
-                <tr onClick={this.onMouseClick} onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
                     <td>
                         <a href="javascript:void(0);" onClick={this.openFolder}>
                             <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
@@ -220,7 +210,7 @@ var Item = React.createClass({
             var modified_at = moment(this.props.item['time_updated']).format("DD-MM-YY HH:mm");
 
             return (
-                <tr onClick={this.onMouseClick} onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
                     <td>
                         <a href={"/pleiofile/" + this.props.item.path}>
                             <span className="glyphicon glyphicon-file"></span>&nbsp;
