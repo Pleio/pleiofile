@@ -26,9 +26,10 @@ var FileList = React.createClass({
         // also stop selecting outside the elements
         window.addEventListener("mouseup", this.onMouseUp);
 
+        // clear selection when clicking outside list
         $('html').mousedown(function(e) {
-            var c = $('.table')[0];
-            if (!$.contains(c, e.target)) {
+            var table = document.getElementById('pleiobox-table');
+            if (!$.contains(table, e.target) && !$('body').hasClass('modal-open')) {
                 this.setState({
                     selected: new Set()
                 });
@@ -79,6 +80,18 @@ var FileList = React.createClass({
     sort: function(on) {
         this.props.onSort(on);
     },
+    editItem: function(e) {
+        if (this.state.selected.size !== 1) {
+            return true;
+        }
+
+        var selectedItem = this.state.selected.first();
+        if (selectedItem['is_dir']) {
+            this.props.onEditFolder(selectedItem);
+        } else {
+            this.props.onEditFile(selectedItem);
+        }
+    },
     deleteItems: function() {
         var total = this.state.selected.size;
         this.state.selected.map(function(item) {
@@ -113,23 +126,45 @@ var FileList = React.createClass({
                 onOpenFolder={this.onOpenFolder} />);
         }.bind(this));
 
+        var isWritable = true;
+        this.state.selected.map(function(item) {
+            if (!item.is_writable) { isWritable = false; }
+        });
+
+        if (isWritable) {
+            if (this.state.selected.size == 1) {
+                var edit = (
+                    <span>
+                        <span className="glyphicon glyphicon-edit"></span>&nbsp;
+                            <a href="javascript:void(0);" onClick={this.editItem}>{elgg.echo('edit')}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                        <span className="glyphicon glyphicon-trash"></span>&nbsp;
+                            <a href="javascript:void(0);" onClick={this.deleteItems}>{elgg.echo('delete')}</a>&nbsp;
+                    </span>
+                );
+            } else {
+                var edit = (
+                    <span>
+                        <span className="glyphicon glyphicon-trash"></span>&nbsp;
+                            <a href="javascript:void(0);" onClick={this.deleteItems}>{elgg.echo('delete')}</a>&nbsp;
+                    </span>
+                );
+            }
+
+        }
+
         if (this.state.selected.size > 0) {
             if (this.state.selected.size == 1) {
                 var header = (
                     <th colSpan="3">
                         {this.state.selected.size} items geselecteerd.&nbsp;&nbsp;
-                        <span className="glyphicon glyphicon-edit"></span>&nbsp;
-                            <a href="javascript:void(0);" onClick={this.editFiles}>{elgg.echo('edit')}</a>&nbsp;&nbsp;&nbsp;&nbsp;
-                        <span className="glyphicon glyphicon-trash"></span>&nbsp;
-                            <a href="javascript:void(0);" onClick={this.deleteItems}>{elgg.echo('delete')}</a>&nbsp;
+                        {edit}
                     </th>
                 );
             } else {
                 var header = (
                     <th colSpan="3">
                         {this.state.selected.size} items geselecteerd.&nbsp;&nbsp;
-                        <span className="glyphicon glyphicon-trash"></span>&nbsp;
-                            <a href="javascript:void(0);" onClick={this.deleteItems}>{elgg.echo('delete')}</a>&nbsp;
+                        {edit}
                     </th>
                 );
             }
@@ -137,6 +172,7 @@ var FileList = React.createClass({
             var columns = {
                 'title': elgg.echo('pleiofile:name'),
                 'time_updated': elgg.echo('pleiofile:modified_at'),
+                'created_by': elgg.echo('pleiofile:created_by'),
                 'access_id': elgg.echo('pleiofile:shared_with')
             };
 
@@ -161,7 +197,7 @@ var FileList = React.createClass({
         }
 
         return (
-            <table className="table table-hover">
+            <table id="pleiobox-table" className="table table-hover">
             <thead>
                 <tr>
                     {header}
@@ -203,6 +239,7 @@ var Item = React.createClass({
                         </a>
                     </td>
                     <td>-</td>
+                    <td>{this.props.item.created_by}</td>
                     <td>{sharedWith}</td>
                 </tr>
             );
@@ -218,6 +255,7 @@ var Item = React.createClass({
                         </a>
                     </td>
                     <td>{modified_at}</td>
+                    <td>{this.props.item.created_by}</td>
                     <td>{sharedWith}</td>
                 </tr>
             );
@@ -230,11 +268,16 @@ var FileUpload = React.createClass({
         return {
             showModal: false,
             files: null,
-            accessId: _appData['defaultAccessId']
+            accessId: null
         };
     },
     close() { this.setState({ showModal: false }); },
     open() { this.setState({ showModal: true }); },
+    setAccessId(accessId) {
+        this.setState({
+            accessId: accessId
+        });
+    },
     render() {
         var accessOptions = $jq19.map(_appData['accessIds'], function(value, key) {
             return (<option key={key} value={key}>{value}</option>);
@@ -297,17 +340,102 @@ var FileUpload = React.createClass({
     }
 });
 
-var FolderCreate = React.createClass({
+var FileEdit = React.createClass({
     getInitialState() {
         return {
             showModal: false,
-            title:'',
-            accessId: _appData['defaultAccessId']
+            title: '',
+            accessId: false
         };
+    },
+    setFile: function(file) {
+        this.setState({
+            path: file.path,
+            title: file.title,
+            accessId: file.access_id
+        });
     },
     close() { this.setState({ showModal: false }); },
     open() { this.setState({ showModal: true }); },
     render() {
+        var accessOptions = $jq19.map(_appData['accessIds'], function(value, key) {
+            return (<option key={key} value={key}>{value}</option>);
+        });
+
+        return (
+            <div>
+                <Modal show={this.state.showModal} onHide={this.close}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>{elgg.echo('pleiofile:edit_file')}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <form onSubmit={this.edit}>
+                            <Input type="text" label={elgg.echo('pleiofile:name')} name="title" value={this.state.title} onChange={this.changeTitle} autoFocus="true" />
+                            <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
+                                {accessOptions}
+                            </Input>
+                            <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('edit')} />
+                        </form>
+                    </Modal.Body>
+                </Modal>
+            </div>
+        )
+    },
+    changeTitle(e) {
+        this.setState({title: e.target.value});
+    },
+    changeAccessId(e) {
+        this.setState({accessId: e.target.value});
+    },
+    edit(e) {
+        e.preventDefault();
+        this.close();
+
+        $jq19.ajax({
+            url: '/' + elgg.security.addToken("action/pleiofile/update_file"),
+            data: {
+                path: this.state.path,
+                title: this.state.title,
+                access_id: this.state.accessId
+            },
+            type: 'POST',
+            success: function(data) {
+                this.props.onComplete();
+            }.bind(this)
+        });
+    }
+});
+
+var FolderEdit = React.createClass({
+    getInitialState() {
+        return {
+            path: null,
+            showModal: false,
+            title:'',
+            accessId: this.props.defaultAccessId
+        };
+    },
+    setFolder: function(folder) {
+        if (folder) {
+            this.setState({
+                path: folder.path,
+                title: folder.title,
+                accessId: folder.access_id
+            });
+        } else {
+            this.setState(this.getInitialState());
+        }
+    },
+    close() { this.setState({ showModal: false }); },
+    open() { this.setState({ showModal: true }); },
+    render() {
+        if (this.state.path) {
+            var modalTitle = elgg.echo('pleiofile:edit_folder');
+            var buttonValue = elgg.echo('edit');
+        } else {
+            var modalTitle = elgg.echo('pleiofile:create_folder');
+            var buttonValue = elgg.echo('create');
+        }
 
         var accessOptions = $jq19.map(_appData['accessIds'], function(value, key) {
             return (<option key={key} value={key}>{value}</option>);
@@ -317,7 +445,7 @@ var FolderCreate = React.createClass({
             <div>
                 <Modal show={this.state.showModal} onHide={this.close}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{elgg.echo('pleiofile:create_folder')}</Modal.Title>
+                        <Modal.Title>{modalTitle}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <form onSubmit={this.create}>
@@ -325,7 +453,7 @@ var FolderCreate = React.createClass({
                             <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
-                            <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('create')} />
+                            <ButtonInput type="submit" bsStyle="primary" value={buttonValue} />
                         </form>
                     </Modal.Body>
                 </Modal>
@@ -342,18 +470,27 @@ var FolderCreate = React.createClass({
         e.preventDefault();
         this.close();
 
-        $jq19.ajax({
-            method: 'POST',
-            url: '/' + elgg.security.addToken("action/pleiofile/create_folder"),
-            data: {
+        if (this.state.path) {
+            var url = '/' + elgg.security.addToken("action/pleiofile/update_folder");
+            var data = {
+                'path': this.state.path,
+                'title': this.state.title,
+                'access_id': this.state.accessId
+            };
+        } else {
+            var url = '/' + elgg.security.addToken("action/pleiofile/create_folder");
+            var data = {
                 'path': this.props.path,
                 'title': this.state.title,
                 'access_id': this.state.accessId
-            },
+            };
+        }
+
+        $jq19.ajax({
+            method: 'POST',
+            url: url,
+            data: data,
             success: function(data) {
-                this.setState({
-                    'title':''
-                });
                 this.props.onComplete();
             }.bind(this)
         });
@@ -367,7 +504,9 @@ var FileBrowser = React.createClass({
             breadcrumb: [],
             items: [],
             sortOn: 'title',
-            sortAscending: true
+            sortAscending: true,
+            accessId: null,
+            isWritable: false
         }
     },
     componentDidMount: function() {
@@ -379,6 +518,8 @@ var FileBrowser = React.createClass({
             dataType: 'json',
             success: function(data) {
                 this.setState({
+                    accessId: data.access_id,
+                    isWritable: data.is_writable,
                     breadcrumb: data.breadcrumb,
                     items: data.children
                 });
@@ -470,6 +611,18 @@ var FileBrowser = React.createClass({
         var home = ( <BreadcrumbItem key="0" path={this.props.home} title="Home" onOpenFolder={this.openFolder} /> );
         breadcrumb.unshift(home);
 
+        if (this.state.isWritable) {
+            var add = (
+                <div className="pleiobox-btn-group">
+                    <DropdownButton id="new" title={elgg.echo('add')} pullRight={true}>
+                        <MenuItem onClick={this.newFile}>{elgg.echo('pleiofile:create_file')}</MenuItem>
+                        <MenuItem onClick={this.uploadFile}>{elgg.echo('pleiofile:upload_file')}</MenuItem>
+                        <MenuItem onClick={this.createFolder}>{elgg.echo('pleiofile:create_folder')}</MenuItem>
+                    </DropdownButton>
+                </div>
+            );
+        }
+
         return (
             <div>
                 <div className="pleiobox-breadcrumb">
@@ -477,27 +630,36 @@ var FileBrowser = React.createClass({
                         {breadcrumb}
                     </Breadcrumb>
                 </div>
-                <div className="pleiobox-btn-group">
-                    <DropdownButton id="new" title={elgg.echo('add')} pullRight={true}>
-                        <MenuItem onClick={this.fileNew}>{elgg.echo('pleiofile:create_file')}</MenuItem>
-                        <MenuItem onClick={this.fileUpload}>{elgg.echo('pleiofile:upload_file')}</MenuItem>
-                        <MenuItem onClick={this.folderCreate}>{elgg.echo('pleiofile:create_folder')}</MenuItem>
-                    </DropdownButton>
-                </div>
-                <FileList items={this.state.items} onComplete={this.getItems} onOpenFolder={this.openFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
+                {add}
+                <FileList items={this.state.items} onComplete={this.getItems} onOpenFolder={this.openFolder} onEditFile={this.editFile} onEditFolder={this.editFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
                 <FileUpload ref="fileUpload" path={this.state.path} onComplete={this.getItems} />
-                <FolderCreate ref="folderCreate" path={this.state.path} onComplete={this.getItems} />
+                <FileEdit ref="fileEdit" path={this.state.path} onComplete={this.getItems} file={this.state.editFile} />
+                <FolderEdit ref="folderEdit" path={this.state.path} onComplete={this.getItems} folder={this.state.editFolder} defaultAccessId={this.state.accessId} />
             </div>
         );
     },
-    fileNew: function() {
+    newFile: function() {
         window.open('/odt_editor/create' + this.state.path, '_blank');
     },
-    fileUpload: function() {
+    uploadFile: function() {
+        this.refs['fileUpload'].setAccessId(this.state.accessId);
         this.refs['fileUpload'].open();
     },
-    folderCreate: function() {
-        this.refs['folderCreate'].open();
+    editFile: function(file) {
+        this.refs['fileEdit'].setFile(file);
+        this.refs['fileEdit'].open();
+    },
+    createFolder: function() {
+        this.refs['folderEdit'].setFolder({
+            path: null,
+            title: '',
+            access_id: this.state.accessId
+        });
+        this.refs['folderEdit'].open();
+    },
+    editFolder: function(folder) {
+        this.refs['folderEdit'].setFolder(folder);
+        this.refs['folderEdit'].open();
     }
 });
 

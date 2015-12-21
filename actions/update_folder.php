@@ -3,10 +3,8 @@
 gatekeeper();
 
 $path = pleiofile_explode_path(get_input('path'));
-$item = get_entity(array_slice($path, -1)[0]);
 
 $container = get_entity($path[0]);
-
 if ($container) {
     $browser = new PleioFileBrowser($container->guid);
 } else {
@@ -16,9 +14,11 @@ if ($container) {
 
 $container_path = array_slice($path, 1);
 
-if ($item instanceof ElggFile) {
-    $container_path[] = "random_filename.txt";
-    $browser->deleteFile($container_path);
-} else {
-    $browser->deleteFolder($container_path);
+try {
+    $browser->updateFolder($container_path, array(
+        'title' => get_input('title'),
+        'access_id' => (int) get_input('access_id')
+    ));
+} catch (Exception $e) {
+    http_response_code(403);
 }

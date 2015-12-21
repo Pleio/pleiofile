@@ -10,7 +10,7 @@ $container_path = array_slice($path, 1);
 $container = get_entity($container_guid);
 
 if ($container) {
-    $browser = new ElggFileBrowser($container->guid);
+    $browser = new PleioFileBrowser($container->guid);
 } else {
     http_response_code(404);
     exit();

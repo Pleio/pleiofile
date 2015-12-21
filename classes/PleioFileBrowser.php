@@ -1,6 +1,6 @@
 <?php
 
-class ElggFileBrowser {
+class PleioFileBrowser {
 
     function __construct($container_guid) {
         $container = get_entity($container_guid);
@@ -58,16 +58,11 @@ class ElggFileBrowser {
         return array_merge($folders, $files);
     }
 
-    public function createFolder($path = array(), $access_id = 0) {
-
-        if (count($path) < 1) {
-            throw new Exception('Path length must be at least one.');
-        }
-
-        if (count($path) == 1) {
+    public function createFolder($path = array(), $params = array()) {
+        if (count($path) == 0) {
             $parent = $this->container;
         } else {
-            $parent_guid = array_slice($path, -2)[0];
+            $parent_guid = array_slice($path, -1)[0];
             $parent = get_entity($parent_guid);
         }
 
@@ -77,7 +72,7 @@ class ElggFileBrowser {
 
         $folder = new ElggObject();
         $folder->subtype = 'folder';
-        $folder->title = array_slice($path, -1)[0];
+        $folder->title = $params['title'];
 
         if ($parent instanceof ElggObject) { // lower level folder
             $folder->container_guid = $parent->container_guid;
@@ -87,16 +82,25 @@ class ElggFileBrowser {
             $folder->parent_guid = 0;
         }
 
-        if (!$access_id) {
+        if (array_key_exists('access_id', $params)) {
+            $folder->access_id = $params['access_id'];
+        } else {
             if ($parent instanceof ElggObject) {
                 $folder->access_id = $parent->access_id;
             } elseif ($parent instanceof ElggGroup) {
                 $folder->access_id = $parent->group_acl;
             }
-        } else {
-            $folder->access_id = $access_id;
         }
 
+        return $folder->save();
+    }
+
+    public function updateFolder($path = array(), $params = array()) {
+        $folder_guid = array_slice($path, -1)[0];
+        $folder = get_entity($folder_guid);
+
+        $folder->title = $params['title'];
+        $folder->access_id = $params['access_id'];
         return $folder->save();
     }
 
@@ -226,6 +230,34 @@ class ElggFileBrowser {
         if ($parent != $this->container && $parent instanceof ElggObject) {
             add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
         }
+    }
+
+    public function updateFile($path = array(), $params = array()) {
+        if (count($path) == 1) {
+            $parent = $this->container;
+        } else {
+            $parent_guid = array_slice($path, -2)[0];
+            $parent = get_entity($parent_guid);
+        }
+
+        if (!$parent | !$parent->canWriteToContainer()) {
+            return false;
+        }
+
+        $file_guid = array_slice($path, -1)[0];
+        $file = get_entity($file_guid);
+
+        $file->title = $params['title'];
+        $file->title = $params['title'];
+        $file->access_id = $params['access_id'];
+        $result = $file->save();
+
+        if ($parent != $this->container && $parent instanceof ElggObject) {
+            add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
+        }
+
+        return $result;
+
     }
 
     public function getFile($path = array()) {

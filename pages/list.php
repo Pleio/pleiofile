@@ -10,8 +10,12 @@ elgg_load_js('bootstrap');
 elgg_load_css('bootstrap');
 elgg_load_css('pleiofile');
 
+gatekeeper();
+
 $page_owner = elgg_get_page_owner_entity();
 $title_text = elgg_echo("file:user", array($page_owner->name));
+
+elgg_push_context('pleiofile');
 
 $params = array(
     "title" => $title_text,
@@ -29,8 +33,7 @@ if ($page_owner instanceof ElggGroup) {
 
 $data = array(
     'containerGuid' => $page_owner->getGUID(),
-    'accessIds' => get_write_access_array(),
-    'defaultAccessId' => get_default_access()
+    'accessIds' => get_write_access_array()
 );
 
 $params['content'] = "<script> var _appData = " . json_encode($data) . "; </script>";
@@ -44,3 +47,5 @@ if ($CONFIG->dev_mode) {
 }
 
 echo elgg_view_page($title_text, elgg_view_layout("content", $params));
+
+elgg_pop_context();

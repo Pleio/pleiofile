@@ -7,7 +7,12 @@ $english = array(
     'pleiofile:create_file' => 'Create file',
     'pleiofile:upload_file' => 'Upload file',
     'pleiofile:create_folder' => 'Create folder',
-    'pleiofile:files' => 'File(s)'
+    'pleiofile:edit_folder' => 'Edit folder',
+    'pleiofile:edit_file' => 'Edit file',
+    'pleiofile:files' => 'File(s)',
+    'pleiofile:created_by' => 'Created by',
+    'pleiofile:file_management:can_add' => 'Group members can add files and folders',
+    'pleiofile:file_management:can_edit' => 'Group members can edit files and folders of others'
 );
 
 add_translation("en", $english);
