@@ -249,7 +249,7 @@ var Item = React.createClass({
             return (
                 <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
                     <td>
-                        <a href={"/pleiofile/" + this.props.item.path}>
+                        <a href={this.props.item.path}>
                             <span className="glyphicon glyphicon-file"></span>&nbsp;
                             {this.props.item.title}
                         </a>

@@ -42718,7 +42718,7 @@ var Item = React.createClass({
                     null,
                     React.createElement(
                         'a',
-                        { href: "/pleiofile/" + this.props.item.path },
+                        { href: this.props.item.path },
                         React.createElement('span', { className: 'glyphicon glyphicon-file' }),
                         ' ',
                         this.props.item.title
