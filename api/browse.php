@@ -1,41 +1,33 @@
 <?php
-
 gatekeeper();
-
-$path = get_input('path');
-
-$container_guid = $path[0];
-$container_path = array_slice($path, 1);
-$container = get_entity($container_guid);
-
-elgg_set_page_owner_guid($container->guid);
 
 elgg_push_context('pleiofile');
 
-if ($container) {
-    $browser = new PleioFileBrowser($container->guid);
-} else {
+$folder_guid = get_input('folder_guid');
+$folder = get_entity($folder_guid);
+
+if (!$folder) {
     http_response_code(404);
     exit();
 }
 
 $json = array();
+$json['guid'] = $folder->guid;
+$json['is_writable'] = $folder->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT) && $folder->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
 
-if (count($container_path) == 0) {
-    $json['title'] = $container->name;
+if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
+    $json['title'] = $folder->name;
     $json['access_id'] = get_default_access();
 } else {
-    $parent_guid = array_slice($path, -1)[0];
-    $parent = get_entity($parent_guid);
-    $json['title'] = $parent->title;
-    $json['access_id'] = $parent->access_id;
+    $json['title'] = $folder->title;
+    $json['access_id'] = $folder->access_id;
 }
 
-$json['is_writable'] = $container->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT) && $container->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
+$browser = new PleioFileBrowser();
 
 $json['breadcrumb'] = array();
-foreach ($container_path as $item) {
-    $item = get_entity($item);
+
+foreach ($browser->getPath($folder) as $item) {
     $json['breadcrumb'][] = array(
         'guid' => $item->guid,
         'title' => $item->title
@@ -43,17 +35,21 @@ foreach ($container_path as $item) {
 }
 
 $json['children'] = array();
-$children = $browser->getFolderContents($container_path);
+$children = $browser->getFolderContents($folder);
 foreach ($children as $child) {
     $attributes = array(
+        'guid' => $child->guid,
         'title' => htmlspecialchars_decode($child->title, ENT_QUOTES),
         'is_dir' => $child instanceof ElggFile ? false : true,
         'is_writable' => $child->canEdit(),
         'access_id' => $child->access_id,
         'created_by' => $child->getOwnerEntity()->name,
-        'time_updated' => date('c', $child->time_updated),
-        'path' => $child instanceof ElggFile ? $child->getURL() : implode(array_merge($path, array($child->guid)), '/')
+        'time_updated' => date('c', $child->time_updated)
     );
+
+    if ($child instanceof ElggFile) {
+        $attributes['url'] = $child->getURL();
+    }
 
     $json['children'][] = $attributes;
 }

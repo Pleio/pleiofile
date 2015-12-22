@@ -1,24 +1,25 @@
 <?php
-
 gatekeeper();
 
-$path = pleiofile_explode_path(get_input('path'));
-
-$container = get_entity($path[0]);
-if ($container) {
-    $browser = new PleioFileBrowser($container->guid);
-} else {
+$parent_guid = get_input('parent_guid');
+$parent = get_entity($parent_guid);
+if (!$parent) {
     http_response_code(404);
     exit();
 }
 
-$container_path = array_slice($path, 1);
+if (!$parent->canWriteToContainer()) {
+    http_response_code(403);
+    exit();
+}
+
+$browser = new PleioFileBrowser();
 
 try {
-    $browser->createFolder($container_path, array(
+    $browser->createFolder($parent, array(
         'title' => get_input('title'),
-        'access_id' => get_input('access_id')
+        'access_id' => (int) get_input('access_id')
     ));
 } catch (Exception $e) {
-    http_response_code(403);
+    http_response_code(500);
 }

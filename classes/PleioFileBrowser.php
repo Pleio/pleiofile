@@ -2,31 +2,43 @@
 
 class PleioFileBrowser {
 
-    function __construct($container_guid) {
-        $container = get_entity($container_guid);
+    public function getPath($folder) {
+        $path = array();
 
-        if ($container instanceof ElggUser) {
-            $this->container = $container;
-        } elseif ($container instanceof ElggGroup) {
-            $this->container = $container;
-        } else {
-            throw new Exception('Invalid container');
+        if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
+            return $path;
         }
+
+        $path[] = $folder;
+
+        $parent = get_entity($folder->parent_guid);
+        while ($parent) {
+            $path[] = $parent;
+            $parent = get_entity($parent->parent_guid);
+        }
+
+        return array_reverse($path);
     }
 
-    public function getFolderContents($path = array()) {
+    public function getFolderContents($folder) {
+        if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
+            $container = $folder;
+        } else {
+            $container = $folder->getContainerEntity();
+        }
+
         $db_prefix = elgg_get_config("dbprefix");
 
         $options = array(
             'type' => 'object',
             'subtype' => 'file',
-            'container_guid' => $this->container->guid,
-            'limit' => false,
+            'container_guid' => $container->guid,
+            'limit' => 100,
             'joins' => "JOIN {$db_prefix}objects_entity oe ON e.guid = oe.guid",
             'order_by' => 'oe.title ASC'
         );
 
-        if (count($path) === 0) {
+        if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
             $parent_guid = 0;
             $options['wheres'] = "NOT EXISTS (
                     SELECT 1 FROM {$db_prefix}entity_relationships r
@@ -34,7 +46,7 @@ class PleioFileBrowser {
                     r.relationship = '" . FILE_TOOLS_RELATIONSHIP . "')";
             $files = elgg_get_entities($options);
         } else {
-            $parent_guid = array_slice($path, -1)[0];
+            $parent_guid = $folder->guid;
             $options['relationship'] = FILE_TOOLS_RELATIONSHIP;
             $options['relationship_guid'] = $parent_guid;
             $files = elgg_get_entities_from_relationship($options);
@@ -43,8 +55,8 @@ class PleioFileBrowser {
         $options = array(
             'type' => 'object',
             'subtype' => 'folder',
-            'container_guid' => $this->container->guid,
-            'limit' => false,
+            'container_guid' => $container->guid,
+            'limit' => 100,
             'metadata_name_value_pairs' => array(array(
                 'name' => 'parent_guid',
                 'value' => $parent_guid
@@ -58,31 +70,25 @@ class PleioFileBrowser {
         return array_merge($folders, $files);
     }
 
-    public function createFolder($path = array(), $params = array()) {
-        if (count($path) == 0) {
-            $parent = $this->container;
+    public function createFolder($parent, $params = array()) {
+        if ($parent instanceof ElggUser | $parent instanceof ElggGroup) {
+            $container = $parent;
         } else {
-            $parent_guid = array_slice($path, -1)[0];
-            $parent = get_entity($parent_guid);
-        }
-
-        if (!$parent | !$parent->canWriteToContainer()) {
-            return false;
+            $container = $parent->getContainerEntity();
         }
 
         $folder = new ElggObject();
         $folder->subtype = 'folder';
         $folder->title = $params['title'];
+        $folder->container_guid = $container->guid;
 
         if ($parent instanceof ElggObject) { // lower level folder
-            $folder->container_guid = $parent->container_guid;
             $folder->parent_guid = $parent->guid;
-        } elseif ($parent instanceof ElggGroup) { // top level folder
-            $folder->container_guid = $parent->guid;
+        } elseif ($parent instanceof ElggUser | $parent instanceof ElggGroup) { // top level folder
             $folder->parent_guid = 0;
         }
 
-        if (array_key_exists('access_id', $params)) {
+        if (isset($params['access_id'])) {
             $folder->access_id = $params['access_id'];
         } else {
             if ($parent instanceof ElggObject) {
@@ -95,164 +101,95 @@ class PleioFileBrowser {
         return $folder->save();
     }
 
-    public function updateFolder($path = array(), $params = array()) {
-        $folder_guid = array_slice($path, -1)[0];
-        $folder = get_entity($folder_guid);
-
+    public function updateFolder($folder, $params = array()) {
         $folder->title = $params['title'];
         $folder->access_id = $params['access_id'];
+
         return $folder->save();
     }
 
-    public function deleteFolder($path = array()) {
-        $folder_guid = array_slice($path, -1)[0];
-        $folder = get_entity($folder_guid);
-
+    public function deleteFolder($folder) {
         if (!$folder instanceof ElggObject) {
             return false;
         }
 
-        if (!$folder->canEdit()) {
-            return false;
-        }
-
-        $contents = $this->getFolderContents($path);
-        foreach ($contents as $content) {
-            $subtype = $content->getSubtype();
+        $objects = $this->getFolderContents($folder);
+        foreach ($objects as $object) {
+            $subtype = $object->getSubtype();
             if ($subtype == 'folder') {
-                $this->deleteFolder(array_merge($path, array($content->guid)));
+                $this->deleteFolder($object);
             } elseif ($subtype == 'file') {
-                $content->delete();
+                $object->delete();
             }
         }
 
         $folder->delete();
     }
 
-    public function createFile($path = array(), $filename = "", $filestream = false, $access_id = 0) {
-
-        if (!isset($filename)) {
-            if (count($path) < 1) {
-                throw new Exception('Path length must be at least one.');
-            }
-            if (count($path) == 1) {
-                $parent = $this->container;
-            } else {
-                $parent_guid = array_slice($path, -2)[0];
-                $parent = get_entity($parent_guid);
-            }
-
-            $filename = array_slice($path, -1)[0];
+    public function createFile($parent, $params = array()) {
+        if ($parent instanceof ElggUser | $parent instanceof ElggGroup) {
+            $container = $parent;
         } else {
-            if (count($path) == 0) {
-                $parent = $this->container;
-            } else {
-                $parent_guid = array_slice($path, -1)[0];
-                $parent = get_entity($parent_guid);
-            }
+            $container = $parent->getContainerEntity();
         }
 
-        if (!$parent | !$parent->canWriteToContainer()) {
-            return false;
-        }
-
-        if (!$access_id) {
+        if (!$params['access_id']) {
             if ($parent instanceof ElggObject) { // lower level folder
                 $access_id = $parent->access_id;
             } elseif ($parent instanceof ElggGroup) { // top level folder
                 $access_id = $parent->group_acl;
-            } else {
-                throw new Exception('Invalid container.');
             }
+        } else {
+            $access_id = $params['access_id'];
         }
 
         $file = new FilePluginFile();
-        $file->subtype = "file";
-        $file->title = $filename;
+        $file->title = $params['filename'];
         $file->access_id = $access_id;
-        $file->container_guid = $this->container->guid;
+        $file->container_guid = $container->guid;
 
-        $filestorename = elgg_strtolower(time() . $filename);
+        $filestorename = elgg_strtolower(time() . $params['filename']);
         $file->setFilename("file/" . $filestorename);
-        $file->originalfilename = $filename;
+        $file->originalfilename = $params['filename'];
 
-        if ($filestream) {
-            file_put_contents($file->getFilenameOnFilestore(), $filestream);
+        if ($params['stream']) {
+            file_put_contents($file->getFilenameOnFilestore(), $params['stream']);
         } else {
             $input = fopen("php://input", "r");
             file_put_contents($file->getFilenameOnFilestore(), $input);
         }
 
-        $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), mime_content_type($filename));
+        $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), $params['type']);
         $file->setMimeType($mime_type);
         $file->simpletype = file_get_simple_type($mime_type);
 
         $file->save();
 
-        if ($file->simpletype == "image") {
-            $file->icontime = time();
+        pleiofile_generate_file_thumbs($file);
 
-            $thumbnail = get_resized_image_from_existing_file($file->getFilenameOnFilestore(), 60, 60, true);
-            if ($thumbnail) {
-                $thumb = new ElggFile();
-                $thumb->setMimeType($_FILES['upload']['type']);
-
-                $thumb->setFilename($prefix."thumb".$filestorename);
-                $thumb->open("write");
-                $thumb->write($thumbnail);
-                $thumb->close();
-
-                $file->thumbnail = $prefix."thumb".$filestorename;
-                unset($thumbnail);
-            }
-
-            $thumbsmall = get_resized_image_from_existing_file($file->getFilenameOnFilestore(), 153, 153, true);
-            if ($thumbsmall) {
-                $thumb->setFilename($prefix."smallthumb".$filestorename);
-                $thumb->open("write");
-                $thumb->write($thumbsmall);
-                $thumb->close();
-                $file->smallthumb = $prefix."smallthumb".$filestorename;
-                unset($thumbsmall);
-            }
-
-            $thumblarge = get_resized_image_from_existing_file($file->getFilenameOnFilestore(), 600, 600, false);
-            if ($thumblarge) {
-                $thumb->setFilename($prefix."largethumb".$filestorename);
-                $thumb->open("write");
-                $thumb->write($thumblarge);
-                $thumb->close();
-                $file->largethumb = $prefix."largethumb".$filestorename;
-                unset($thumblarge);
-            }
-        }
-
-        if ($parent != $this->container && $parent instanceof ElggObject) {
+        if ($parent instanceof ElggObject) {
             add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
         }
     }
 
-    public function updateFile($path = array(), $params = array()) {
-        if (count($path) == 1) {
-            $parent = $this->container;
+    public function updateFile($file, $params = array()) {
+        $parents = $file->getEntitiesFromRelationship(array(
+            'relationship' => FILE_TOOLS_RELATIONSHIP,
+            'inverse' => true
+        ));
+
+        if ($parents) {
+            $parent = $parents[0];
         } else {
-            $parent_guid = array_slice($path, -2)[0];
-            $parent = get_entity($parent_guid);
+            $parent = $file->getContainerEntity();
         }
 
-        if (!$parent | !$parent->canWriteToContainer()) {
-            return false;
-        }
-
-        $file_guid = array_slice($path, -1)[0];
-        $file = get_entity($file_guid);
-
-        $file->title = $params['title'];
         $file->title = $params['title'];
         $file->access_id = $params['access_id'];
         $result = $file->save();
 
-        if ($parent != $this->container && $parent instanceof ElggObject) {
+        // make sure the relationship is not deleted (by file_tools code), so add again.
+        if ($parent instanceof ElggObject) {
             add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
         }
 
@@ -260,13 +197,8 @@ class PleioFileBrowser {
 
     }
 
-    public function getFile($path = array()) {
-        $container_guid = $this->container->guid;
-
-        $file_guid = array_slice($path, -2)[0];
-        $file = get_entity($file_guid);
-
-        if (!isset($file) | !$file instanceof ElggFile) {
+    public function downloadFile($file) {
+        if (!$file instanceof ElggFile) {
             throw new Exception('Could not find this specific file.');
         }
 
@@ -276,6 +208,7 @@ class PleioFileBrowser {
         }
 
         $filename = $file->originalfilename;
+
         header("Content-Type: $mime");
         header("Content-Disposition: attachment; filename=\"$filename\"");
         header("Content-Length: " . filesize($file->getFilenameOnFilestore()));
@@ -286,23 +219,11 @@ class PleioFileBrowser {
         exit;
     }
 
-    public function deleteFile($path = array()) {
-        $file_guid = array_slice($path, -2)[0];
-        $file = get_entity($file_guid);
-
-        if (!$file) {
-            throw new Exception('Could not find entity.');
-        }
-
+    public function deleteFile($file) {
         if (!$file instanceof ElggFile) {
             throw new Exception('This is not an ElggFile object.');
         }
 
-        if (!$file->canEdit()) {
-            throw new Exception('No write access to the object.');
-        }
-
         return $file->delete();
     }
-
 }

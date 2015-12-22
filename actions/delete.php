@@ -1,24 +1,21 @@
 <?php
-
 gatekeeper();
 
-$path = pleiofile_explode_path(get_input('path'));
-$item = get_entity(array_slice($path, -1)[0]);
-
-$container = get_entity($path[0]);
-
-if ($container) {
-    $browser = new PleioFileBrowser($container->guid);
-} else {
+$guid = get_input('guid');
+$item = get_entity($guid);
+if (!$item) {
     http_response_code(404);
     exit();
 }
 
-$container_path = array_slice($path, 1);
+if (!$item->canEdit()) {
+    http_response_code(403);
+    exit();
+}
 
+$browser = new PleioFileBrowser();
 if ($item instanceof ElggFile) {
-    $container_path[] = "random_filename.txt";
-    $browser->deleteFile($container_path);
+    $browser->deleteFile($item);
 } else {
-    $browser->deleteFolder($container_path);
+    $browser->deleteFolder($item);
 }

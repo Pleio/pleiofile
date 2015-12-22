@@ -99,7 +99,7 @@ var FileList = React.createClass({
                 method: 'POST',
                 url: '/' + elgg.security.addToken("action/pleiofile/delete"),
                 data: {
-                    'path': item.path
+                    guid: item.guid
                 },
                 success: function(data) {
                     total -= 1;
@@ -111,13 +111,13 @@ var FileList = React.createClass({
             });
         }.bind(this));
     },
-    onOpenFolder: function(path) {
-        this.props.onOpenFolder(path);
+    onOpenFolder: function(guid) {
+        this.props.onOpenFolder(guid);
     },
     render: function() {
         var items = this.props.items.map(function(item) {
             return (<Item
-                key={item.path}
+                key={item.guid}
                 item={item}
                 selected={this.state.selected.has(item)}
                 onMouseDown={this.onMouseDown}
@@ -152,23 +152,7 @@ var FileList = React.createClass({
 
         }
 
-        if (this.state.selected.size > 0) {
-            if (this.state.selected.size == 1) {
-                var header = (
-                    <th colSpan="3">
-                        {this.state.selected.size} items geselecteerd.&nbsp;&nbsp;
-                        {edit}
-                    </th>
-                );
-            } else {
-                var header = (
-                    <th colSpan="3">
-                        {this.state.selected.size} items geselecteerd.&nbsp;&nbsp;
-                        {edit}
-                    </th>
-                );
-            }
-        } else {
+        if (this.state.selected.size === 0) {
             var columns = {
                 'title': elgg.echo('pleiofile:name'),
                 'time_updated': elgg.echo('pleiofile:modified_at'),
@@ -194,6 +178,19 @@ var FileList = React.createClass({
                     </th>
                 );
             }.bind(this));
+        } else {
+            if (this.state.selected.size == 1) {
+                var message = elgg.echo('pleiofile:item_selected');
+            } else {
+                var message = elgg.echo('pleiofile:items_selected');
+            }
+
+            var header = (
+                <th colSpan="3">
+                    {this.state.selected.size} {message}&nbsp;&nbsp;
+                    {edit}
+                </th>
+            );
         }
 
         return (
@@ -213,8 +210,7 @@ var FileList = React.createClass({
 
 var Item = React.createClass({
     openFolder: function(e) {
-        e.stopPropagation();
-        this.props.onOpenFolder(this.props.item.path);
+        this.props.onOpenFolder(this.props.item.guid);
     },
     onMouseDown: function(e) {
         this.props.onMouseDown(e, this.props.item);
@@ -249,7 +245,7 @@ var Item = React.createClass({
             return (
                 <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
                     <td>
-                        <a href={this.props.item.path}>
+                        <a href={this.props.item.url}>
                             <span className="glyphicon glyphicon-file"></span>&nbsp;
                             {this.props.item.title}
                         </a>
@@ -317,7 +313,7 @@ var FileUpload = React.createClass({
             var data = new FormData();
             data.append('file', this.state.files[i]);
             data.append('access_id', this.state.accessId);
-            data.append('path', this.props.path);
+            data.append('parent_guid', this.props.folderGuid);
 
             var options = {
                 url: '/' + elgg.security.addToken("action/pleiofile/upload"),
@@ -343,6 +339,7 @@ var FileUpload = React.createClass({
 var FileEdit = React.createClass({
     getInitialState() {
         return {
+            guid: false,
             showModal: false,
             title: '',
             accessId: false
@@ -350,7 +347,7 @@ var FileEdit = React.createClass({
     },
     setFile: function(file) {
         this.setState({
-            path: file.path,
+            guid: file.guid,
             title: file.title,
             accessId: file.access_id
         });
@@ -394,7 +391,7 @@ var FileEdit = React.createClass({
         $jq19.ajax({
             url: '/' + elgg.security.addToken("action/pleiofile/update_file"),
             data: {
-                path: this.state.path,
+                guid: this.state.guid,
                 title: this.state.title,
                 access_id: this.state.accessId
             },
@@ -409,16 +406,16 @@ var FileEdit = React.createClass({
 var FolderEdit = React.createClass({
     getInitialState() {
         return {
-            path: null,
-            showModal: false,
+            guid: false,
             title:'',
-            accessId: this.props.defaultAccessId
+            accessId: this.props.defaultAccessId,
+            showModal: false
         };
     },
     setFolder: function(folder) {
         if (folder) {
             this.setState({
-                path: folder.path,
+                guid: folder.guid,
                 title: folder.title,
                 accessId: folder.access_id
             });
@@ -429,7 +426,7 @@ var FolderEdit = React.createClass({
     close() { this.setState({ showModal: false }); },
     open() { this.setState({ showModal: true }); },
     render() {
-        if (this.state.path) {
+        if (this.state.guid) {
             var modalTitle = elgg.echo('pleiofile:edit_folder');
             var buttonValue = elgg.echo('edit');
         } else {
@@ -470,17 +467,17 @@ var FolderEdit = React.createClass({
         e.preventDefault();
         this.close();
 
-        if (this.state.path) {
+        if (this.state.guid) {
             var url = '/' + elgg.security.addToken("action/pleiofile/update_folder");
             var data = {
-                'path': this.state.path,
+                'guid': this.state.guid,
                 'title': this.state.title,
                 'access_id': this.state.accessId
             };
         } else {
             var url = '/' + elgg.security.addToken("action/pleiofile/create_folder");
             var data = {
-                'path': this.props.path,
+                'parent_guid': this.props.folderGuid,
                 'title': this.state.title,
                 'access_id': this.state.accessId
             };
@@ -500,7 +497,7 @@ var FolderEdit = React.createClass({
 var FileBrowser = React.createClass({
     getInitialState: function() {
         return {
-            path: this.props.home,
+            folderGuid: this.props.homeGuid,
             breadcrumb: [],
             items: [],
             sortOn: 'title',
@@ -514,8 +511,11 @@ var FileBrowser = React.createClass({
     },
     getItems: function() {
         $jq19.ajax({
-            url: '/pleiofile/browse/' + this.state.path,
+            url: '/pleiofile/browse',
             dataType: 'json',
+            data: {
+                folder_guid: this.state.folderGuid
+            },
             success: function(data) {
                 this.setState({
                     accessId: data.access_id,
@@ -526,12 +526,13 @@ var FileBrowser = React.createClass({
             }.bind(this)
         });
     },
-    openFolder: function(path) {
-        this.state.path = path;
-        this.getItems();
-    },
-    toHome: function() {
-        this.state.path = this.props.home;
+    openFolder: function(guid) {
+        if (guid) {
+            this.state.folderGuid = guid;
+        } else {
+            this.state.folderGuid = this.props.homeGuid;
+        }
+
         this.getItems();
     },
     sort: function(on, ascending) {
@@ -596,15 +597,9 @@ var FileBrowser = React.createClass({
         });
     },
     render: function() {
-        var path = this.state.path;
-        if (path[0] == '/') { path = path.slice(1); }
-        if (path[-1] == '/') { path = path.slice(0, -1); }
-
-        var breadPath = this.props.home;
         var breadcrumb = this.state.breadcrumb.map(function(crumb) {
-            breadPath += "/" + crumb.guid;
             return (
-                <BreadcrumbItem key={crumb.guid} path={breadPath} title={crumb.title} onOpenFolder={this.openFolder} />
+                <BreadcrumbItem key={crumb.guid} guid={crumb.guid} title={crumb.title} onOpenFolder={this.openFolder} />
             );
         }.bind(this));
 
@@ -632,9 +627,9 @@ var FileBrowser = React.createClass({
                 </div>
                 {add}
                 <FileList items={this.state.items} onComplete={this.getItems} onOpenFolder={this.openFolder} onEditFile={this.editFile} onEditFolder={this.editFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
-                <FileUpload ref="fileUpload" path={this.state.path} onComplete={this.getItems} />
-                <FileEdit ref="fileEdit" path={this.state.path} onComplete={this.getItems} file={this.state.editFile} />
-                <FolderEdit ref="folderEdit" path={this.state.path} onComplete={this.getItems} folder={this.state.editFolder} defaultAccessId={this.state.accessId} />
+                <FileUpload ref="fileUpload" folderGuid={this.state.folderGuid} onComplete={this.getItems} />
+                <FolderEdit ref="folderEdit" folderGuid={this.state.folderGuid} onComplete={this.getItems} folder={this.state.editFolder} defaultAccessId={this.state.accessId} />
+                <FileEdit ref="fileEdit" onComplete={this.getItems} file={this.state.editFile} />
             </div>
         );
     },
@@ -665,7 +660,7 @@ var FileBrowser = React.createClass({
 
 var BreadcrumbItem = React.createClass({
     onOpenFolder: function() {
-        this.props.onOpenFolder(this.props.path);
+        this.props.onOpenFolder(this.props.guid);
     },
     render: function() {
         return (
@@ -679,6 +674,6 @@ var BreadcrumbItem = React.createClass({
 });
 
 ReactDOM.render(
-    <FileBrowser home={'/' + _appData['containerGuid']} />,
+    <FileBrowser homeGuid={_appData['containerGuid']} />,
     document.getElementById('pleiobox')
 );

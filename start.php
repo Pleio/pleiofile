@@ -10,6 +10,7 @@
 define("PLEIOFILE_FILE_OBJECT", "file");
 define("PLEIOFILE_FOLDER_OBJECT", "folder");
 
+include_once(dirname(__FILE__) . "/lib/functions.php");
 include_once(dirname(__FILE__) . "/lib/hooks.php");
 
 function pleiofile_init() {
@@ -27,7 +28,6 @@ function pleiofile_init() {
     elgg_register_action("pleiofile/create_folder", $base . "create_folder.php");
     elgg_register_action("pleiofile/update_folder", $base . "update_folder.php");
     elgg_register_action("pleiofile/delete", $base . "delete.php");
-    elgg_register_action("pleiofile/download", $base . "download.php");
     elgg_register_action("pleiofile/upload", $base . "upload.php");
     elgg_register_action("pleiofile/update_file", $base . "update_file.php");
 
