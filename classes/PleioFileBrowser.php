@@ -43,11 +43,11 @@ class PleioFileBrowser {
             $options['wheres'] = "NOT EXISTS (
                     SELECT 1 FROM {$db_prefix}entity_relationships r
                     WHERE r.guid_two = e.guid AND
-                    r.relationship = '" . FILE_TOOLS_RELATIONSHIP . "')";
+                    r.relationship = 'folder_of')";
             $files = elgg_get_entities($options);
         } else {
             $parent_guid = $folder->guid;
-            $options['relationship'] = FILE_TOOLS_RELATIONSHIP;
+            $options['relationship'] = "folder_of";
             $options['relationship_guid'] = $parent_guid;
             $files = elgg_get_entities_from_relationship($options);
         }
@@ -168,13 +168,13 @@ class PleioFileBrowser {
         pleiofile_generate_file_thumbs($file);
 
         if ($parent instanceof ElggObject) {
-            add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
+            add_entity_relationship($parent->guid, "folder_of", $file->guid);
         }
     }
 
     public function updateFile($file, $params = array()) {
         $parents = $file->getEntitiesFromRelationship(array(
-            'relationship' => FILE_TOOLS_RELATIONSHIP,
+            'relationship' => "folder_of",
             'inverse' => true
         ));
 
@@ -190,7 +190,7 @@ class PleioFileBrowser {
 
         // make sure the relationship is not deleted (by file_tools code), so add again.
         if ($parent instanceof ElggObject) {
-            add_entity_relationship($parent->guid, FILE_TOOLS_RELATIONSHIP, $file->guid);
+            add_entity_relationship($parent->guid, "folder_of", $file->guid);
         }
 
         return $result;

@@ -9,8 +9,6 @@
 
 define("PLEIOFILE_FILE_OBJECT", "file");
 define("PLEIOFILE_FOLDER_OBJECT", "folder");
-define("FILE_TOOLS_RELATIONSHIP",   "folder_of");
-
 
 include_once(dirname(__FILE__) . "/lib/functions.php");
 include_once(dirname(__FILE__) . "/lib/hooks.php");
