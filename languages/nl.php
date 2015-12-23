@@ -13,6 +13,9 @@ $dutch = array(
     'pleiofile:item_selected' => 'item geselecteerd.',
     'pleiofile:items_selected' => 'items geselecteerd.',
     'pleiofile:created_by' => 'Gemaakt door',
+    'pleiofile:view' => 'Bekijken',
+    'pleiofile:uploading' => 'Bezig met uploaden...',
+    'pleiofile:download' => 'Downloaden',
     'pleiofile:file_management:can_add' => 'Groepsleden kunnen bestanden en mappen toevoegen',
     'pleiofile:file_management:can_edit' => 'Groepsleden kunnen bestanden en mappen van anderen wijzigen'
 );

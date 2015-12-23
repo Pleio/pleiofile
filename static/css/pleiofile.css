@@ -32,3 +32,10 @@ h6 { font-size: 0.8em; }
 .pleiobox-btn-group {
     float: right;
 }
+
+.pleiobox-upload-filelist {
+    margin-bottom: 10px;
+    max-height: 200px;
+    overflow: scroll;
+    overflow-x: hidden;
+}

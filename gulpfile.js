@@ -8,7 +8,6 @@ var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var gutil = require('gulp-util');
 var assign = require('lodash.assign');
-var browserSync = require('browser-sync').create();
 
 var customOpts = {
     entries: ['static/js/src/pleiofile.jsx'],
@@ -35,8 +34,7 @@ function watch() {
         .pipe(buffer())
         .pipe(sourcemaps.init({loadMaps: true}))
         .pipe(sourcemaps.write('./'))
-        .pipe(gulp.dest('static/js/build'))
-        .pipe(browserSync.stream({once: true}));
+        .pipe(gulp.dest('static/js/build'));
 }
 
 gulp.task('build', function() {

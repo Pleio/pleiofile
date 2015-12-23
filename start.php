@@ -9,6 +9,8 @@
 
 define("PLEIOFILE_FILE_OBJECT", "file");
 define("PLEIOFILE_FOLDER_OBJECT", "folder");
+define("FILE_TOOLS_RELATIONSHIP",   "folder_of");
+
 
 include_once(dirname(__FILE__) . "/lib/functions.php");
 include_once(dirname(__FILE__) . "/lib/hooks.php");
@@ -90,14 +92,15 @@ function pleiofile_file_route_hook($hook, $type, $returnvalue, $params) {
 
 function pleiofile_page_handler($url) {
     gatekeeper();
-    pleiofile_set_page_owner($url);
 
     switch ($url[0]) {
         case "browse":
             set_input('path', array_slice($url, 1));
             include("api/browse.php");
             return true;
-            break;
+        case "bulk_download":
+            include("api/bulk_download.php");
+            return true;
     }
 
     return false;

@@ -42418,6 +42418,7 @@ var ButtonInput = require('react-bootstrap').ButtonInput;
 var Breadcrumb = require('react-bootstrap').Breadcrumb;
 var BreadcrumbItem = require('react-bootstrap').BreadcrumbItem;
 var Set = require('immutable').Set;
+var OrderedSet = require('immutable').OrderedSet;
 var moment = require('moment');
 
 var FileList = React.createClass({
@@ -42425,16 +42426,16 @@ var FileList = React.createClass({
 
     getInitialState: function getInitialState() {
         return {
-            selected: new Set(),
-            clickSelecting: false,
-            dragSelecting: false
+            selected: new OrderedSet(),
+            shiftKey: false,
+            selecting: false,
+            selectBegin: null,
+            selectEnd: null
         };
     },
     componentDidMount: function componentDidMount() {
-        window.addEventListener("keydown", this.handleKeyDown);
-        window.addEventListener("keyup", this.handleKeyUp);
-
-        // also stop selecting outside the elements
+        window.addEventListener("keydown", this.onKeyDown);
+        window.addEventListener("keyup", this.onKeyUp);
         window.addEventListener("mouseup", this.onMouseUp);
 
         // clear selection when clicking outside list
@@ -42442,22 +42443,14 @@ var FileList = React.createClass({
             var table = document.getElementById('pleiobox-table');
             if (!$.contains(table, e.target) && !$('body').hasClass('modal-open')) {
                 this.setState({
-                    selected: new Set()
+                    selected: new OrderedSet()
                 });
             }
         }).bind(this));
     },
-    handleKeyDown: function handleKeyDown(e) {
-        if (e.shiftKey) {
-            this.setState({ clickSelecting: true });
-        }
-    },
-    handleKeyUp: function handleKeyUp(e) {
-        this.setState({ clickSelecting: false });
-    },
     componentWillUpdate: function componentWillUpdate(nextProps, nextState) {
         // do not select site text when selecting elements
-        if (nextState.clickSelecting | nextState.dragSelecting) {
+        if (nextState.selecting) {
             $('html').disableSelection();
         } else {
             $('html').enableSelection();
@@ -42465,33 +42458,86 @@ var FileList = React.createClass({
 
         // clear selection when changing folders
         if (nextProps.items !== this.items) {
-            this.state.selected = new Set();
+            this.state.selected = new OrderedSet();
+        }
+
+        if (nextState.selecting) {
+            var seq = this.props.items.toIndexedSeq();
+            var beginIndex = seq.findIndex(function (v) {
+                return v == nextState.selectBegin;
+            });
+            var endIndex = seq.findIndex(function (v) {
+                return v == nextState.selectEnd;
+            });
+
+            if (beginIndex < endIndex) {
+                nextState.selected = this.props.items.slice(beginIndex, endIndex + 1);
+            } else {
+                nextState.selected = this.props.items.slice(endIndex, beginIndex + 1);
+            }
+        }
+    },
+    onKeyDown: function onKeyDown(e) {
+        if (e.shiftKey) {
+            this.setState({
+                shiftKey: true
+            });
+        }
+    },
+    onKeyUp: function onKeyUp(e) {
+        if (this.state.shiftKey) {
+            this.setState({
+                shiftKey: false
+            });
         }
     },
     onMouseDown: function onMouseDown(e, item) {
-        if (this.state.clickSelecting) {
-            this.setState({
-                selected: this.state.selected.has(item) ? this.state.selected.delete(item) : this.state.selected.add(item)
-            });
-        } else {
-            this.setState({
-                dragSelecting: true,
-                selected: new Set().add(item)
-            });
-        }
+        this.setState({
+            selecting: true,
+            selectBegin: item,
+            selectEnd: item
+        });
     },
     onMouseOver: function onMouseOver(e, item) {
-        if (this.state.dragSelecting) {
+        if (this.state.selecting) {
             this.setState({
-                selected: this.state.selected.has(item) ? this.state.selected.delete(item) : this.state.selected.add(item)
+                selectEnd: item
             });
         }
     },
     onMouseUp: function onMouseUp(e, item) {
-        this.setState({ dragSelecting: false });
+        if (this.state.selecting) {
+            this.setState({
+                selecting: false,
+                selectEnd: item
+            });
+        }
     },
     sort: function sort(on) {
         this.props.onSort(on);
+    },
+    view: function view() {
+        window.location = '/file/view/' + this.state.selected.first().guid;
+    },
+    download: function download() {
+        window.location = this.state.selected.first().url;
+    },
+    bulkDownload: function bulkDownload() {
+        var selectedFiles = $.map(this.state.selected.filter(function (v) {
+            return v.is_dir === false;
+        }).toArray(), function (o) {
+            return o.guid;
+        });
+        var selectedFolders = $.map(this.state.selected.filter(function (v) {
+            return v.is_dir === true;
+        }).toArray(), function (o) {
+            return o.guid;
+        });
+
+        window.location = '/pleiofile/bulk_download?' + $.param({
+            file_guids: selectedFiles,
+            folder_guids: selectedFolders
+        });
     },
     editItem: function editItem(e) {
         if (this.state.selected.size !== 1) {
@@ -42517,7 +42563,7 @@ var FileList = React.createClass({
                 success: (function (data) {
                     total -= 1;
                     if (total === 0) {
-                        this.state.selected = new Set();
+                        this.state.selected = new OrderedSet();
                         this.props.onComplete();
                     }
                 }).bind(this)
@@ -42538,6 +42584,68 @@ var FileList = React.createClass({
                 onMouseUp: this.onMouseUp,
                 onOpenFolder: this.onOpenFolder });
         }).bind(this));
+
+        if (this.state.selected.size == 1) {
+            if (this.state.selected.first().is_dir) {
+                var download = React.createElement(
+                    'span',
+                    null,
+                    React.createElement('span', { className: 'glyphicon glyphicon-download-alt' }),
+                    ' ',
+                    React.createElement(
+                        'a',
+                        { href: 'javascript:void(0);', onClick: this.bulkDownload },
+                        elgg.echo('pleiofile:download')
+                    ),
+                    '    '
+                );
+            } else {
+                var download = React.createElement(
+                    'span',
+                    null,
+                    React.createElement('span', { className: 'glyphicon glyphicon-download-alt' }),
+                    ' ',
+                    React.createElement(
+                        'a',
+                        { href: 'javascript:void(0);', onClick: this.download },
+                        elgg.echo('pleiofile:download')
+                    ),
+                    '    '
+                );
+                var view = React.createElement(
+                    'span',
+                    null,
+                    React.createElement('span', { className: 'glyphicon glyphicon-eye-open' }),
+                    ' ',
+                    React.createElement(
+                        'a',
+                        { href: 'javascript:void(0);', onClick: this.view },
+                        elgg.echo('pleiofile:view')
+                    ),
+                    '    '
+                );
+            }
+        } else {
+            var download = React.createElement(
+                'span',
+                null,
+                React.createElement('span', { className: 'glyphicon glyphicon-download-alt' }),
+                ' ',
+                React.createElement(
+                    'a',
+                    { href: 'javascript:void(0);', onClick: this.bulkDownload },
+                    elgg.echo('pleiofile:download')
+                ),
+                '    '
+            );
+        }
+
+        var view = React.createElement(
+            'span',
+            null,
+            download,
+            view
+        );
 
         var isWritable = true;
         this.state.selected.map(function (item) {
@@ -42624,11 +42732,12 @@ var FileList = React.createClass({
 
             var header = React.createElement(
                 'th',
-                { colSpan: '3' },
+                { colSpan: '4' },
                 this.state.selected.size,
                 ' ',
                 message,
                 '  ',
+                view,
                 edit
             );
         }
@@ -42746,7 +42855,10 @@ var FileUpload = React.createClass({
     getInitialState: function getInitialState() {
         return {
             showModal: false,
-            files: null,
+            uploading: false,
+            files: [],
+            succeeded: new Set(),
+            failed: new Set(),
             accessId: null
         };
     },
@@ -42770,6 +42882,35 @@ var FileUpload = React.createClass({
             );
         });
 
+        var files = $.map(this.state.files, (function (file, i) {
+            ;
+            if (this.state.succeeded.has(i)) {
+                var className = "success";
+            } else if (this.state.failed.has(i)) {
+                var className = "danger";
+            }
+
+            return React.createElement(
+                'tr',
+                { key: "file-" + i, className: className },
+                React.createElement(
+                    'td',
+                    null,
+                    file.name
+                )
+            );
+        }).bind(this));
+
+        if (this.state.uploading) {
+            var uploadButton = React.createElement(
+                ButtonInput,
+                { type: 'submit', bsStyle: 'primary', disabled: 'true' },
+                elgg.echo('pleiofile:uploading')
+            );
+        } else {
+            var uploadButton = React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: elgg.echo('upload') });
+        }
+
         return React.createElement(
             'div',
             null,
@@ -42789,6 +42930,19 @@ var FileUpload = React.createClass({
                     Modal.Body,
                     null,
                     React.createElement(
+                        'div',
+                        { className: 'pleiobox-upload-filelist' },
+                        React.createElement(
+                            'table',
+                            { className: 'table' },
+                            React.createElement(
+                                'tbody',
+                                null,
+                                files
+                            )
+                        )
+                    ),
+                    React.createElement(
                         'form',
                         { onSubmit: this.upload },
                         React.createElement(Input, { type: 'file', multiple: true, label: elgg.echo('pleiofile:files'), name: 'files', onChange: this.changeFiles }),
@@ -42797,14 +42951,18 @@ var FileUpload = React.createClass({
                             { type: 'select', ref: 'accessId', label: elgg.echo('access'), value: this.state.accessId, onChange: this.changeAccessId },
                             accessOptions
                         ),
-                        React.createElement(ButtonInput, { type: 'submit', bsStyle: 'primary', value: 'Uploaden' })
+                        uploadButton
                     )
                 )
             )
         );
     },
     changeFiles: function changeFiles(e) {
-        this.setState({ files: e.target.files });
+        this.setState({
+            files: e.target.files,
+            succeeded: new Set(),
+            failed: new Set()
+        });
     },
     changeAccessId: function changeAccessId(e) {
         this.setState({ accessId: e.target.value });
@@ -42812,11 +42970,16 @@ var FileUpload = React.createClass({
     upload: function upload(e) {
         e.preventDefault();
 
+        this.setState({
+            uploading: true
+        });
+
         var total = this.state.files.length;
         for (var i = 0; i < this.state.files.length; i++) {
 
             var data = new FormData();
-            data.append('file', this.state.files[i]);
+            var file = this.state.files[i];
+            data.append('file', file);
             data.append('access_id', this.state.accessId);
             data.append('parent_guid', this.props.folderGuid);
 
@@ -42827,11 +42990,19 @@ var FileUpload = React.createClass({
                 cache: false,
                 processData: false,
                 type: 'POST',
-                success: (function (data) {
+                success: (function (i, data) {
+                    this.setState({ succeeded: this.state.succeeded.add(i) });
+                }).bind(this, i),
+                error: (function (i, data) {
+                    this.setState({ failed: this.state.failed.add(i) });
+                }).bind(this, i),
+                complete: (function (data) {
                     total -= 1;
                     if (total === 0) {
+                        this.setState({
+                            uploading: false
+                        });
                         this.props.onComplete();
-                        this.close();
                     }
                 }).bind(this)
             };
@@ -43054,7 +43225,7 @@ var FileBrowser = React.createClass({
         return {
             folderGuid: this.props.homeGuid,
             breadcrumb: [],
-            items: [],
+            items: new OrderedSet(),
             sortOn: 'title',
             sortAscending: true,
             accessId: null,
@@ -43076,7 +43247,7 @@ var FileBrowser = React.createClass({
                     accessId: data.access_id,
                     isWritable: data.is_writable,
                     breadcrumb: data.breadcrumb,
-                    items: data.children
+                    items: new OrderedSet(data.children)
                 });
             }).bind(this)
         });

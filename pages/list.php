@@ -40,12 +40,6 @@ $params['content'] = "<script> var _appData = " . json_encode($data) . "; </scri
 $params['content'] .= "<div id=\"pleiobox\"></div>";
 $params['content'] .= "<script src=\"/mod/pleiofile/static/js/build/pleiofile.js\"></script>";
 
-if ($CONFIG->dev_mode) {
-    $params['content'] .= "<script type='text/javascript' id=\"__bs_script__\">//<![CDATA[
-        document.write(\"<script async src='http://HOST:3000/browser-sync/browser-sync-client.2.10.0.js'><\/script>\".replace(\"HOST\", location.hostname));
-    //]]></script>";
-}
-
 echo elgg_view_page($title_text, elgg_view_layout("content", $params));
 
 elgg_pop_context();

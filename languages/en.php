@@ -13,6 +13,9 @@ $english = array(
     'pleiofile:item_selected' => 'item selected.',
     'pleiofile:items_selected' => 'items selected.',
     'pleiofile:created_by' => 'Created by',
+    'pleiofile:view' => 'View',
+    'pleiofile:uploading' => 'Uploading...',
+    'pleiofile:download' => 'Download',
     'pleiofile:file_management:can_add' => 'Group members can add files and folders',
     'pleiofile:file_management:can_edit' => 'Group members can edit files and folders of others'
 );

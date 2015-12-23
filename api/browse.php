@@ -1,10 +1,16 @@
 <?php
-gatekeeper();
 
+elgg_push_context('group');
 elgg_push_context('pleiofile');
 
 $folder_guid = get_input('folder_guid');
 $folder = get_entity($folder_guid);
+
+if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
+    elgg_set_page_owner_guid($folder->guid);
+} else {
+    elgg_set_page_owner_guid($folder->container_guid);
+}
 
 if (!$folder) {
     http_response_code(404);
@@ -57,4 +63,5 @@ foreach ($children as $child) {
 header('Content-Type: application/json');
 echo json_encode($json, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 
+elgg_pop_context();
 elgg_pop_context();
