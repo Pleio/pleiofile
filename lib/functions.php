@@ -13,6 +13,8 @@ function pleiofile_generate_file_thumbs(ElggObject $file) {
         600 => "largethumb"
     );
 
+    $filename = str_replace("file/", "", $file->getFilename());
+
     foreach ($sizes as $size => $description) {
         if ($size < 600) {
             $upscale = true;
@@ -23,18 +25,27 @@ function pleiofile_generate_file_thumbs(ElggObject $file) {
         $thumbnail = get_resized_image_from_existing_file($file->getFilenameOnFilestore(), $size, $size, $upscale);
 
         if ($thumbnail) {
+            $path = "file/" . $description . "_" . $filename;
+
             $thumb = new ElggFile();
             $thumb->setMimeType($_FILES['upload']['type']);
 
-            $thumb->setFilename($prefix . $description . $filestorename);
+            $thumb->setFilename($path);
             $thumb->open("write");
             $thumb->write($thumbnail);
             $thumb->close();
 
-            $file->thumbnail = $prefix . $description . $filestorename;
+            if ($description == "thumb") {
+                $file->thumbnail = $path;
+            } else {
+                $file->$description = $path;
+            }
+
             unset($thumbnail);
         }
     }
+
+    exit();
 }
 
 function pleiofile_add_folder_to_zip(ZipArchive &$zip_archive, ElggObject $folder, $folder_path = ""){
