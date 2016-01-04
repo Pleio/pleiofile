@@ -165,11 +165,11 @@ class PleioFileBrowser {
 
         $file->save();
 
-        pleiofile_generate_file_thumbs($file);
-
         if ($parent instanceof ElggObject) {
             add_entity_relationship($parent->guid, "folder_of", $file->guid);
         }
+
+        pleiofile_generate_file_thumbs($file);
     }
 
     public function updateFile($file, $params = array()) {

@@ -369,7 +369,7 @@ var FileUpload = React.createClass({
 
         if (this.state.uploading) {
             var uploadButton = (
-                <ButtonInput type="submit" bsStyle="primary" disabled="true">
+                <ButtonInput type="submit" bsStyle="primary" disabled={true}>
                     {elgg.echo('pleiofile:uploading')}
                 </ButtonInput>
             );
