@@ -100,3 +100,10 @@ function sanitize_file_name($filename) {
     $filename = mb_ereg_replace("([\.]{2,})", '', $filename);
     return $filename;
 }
+
+// remain API compatible with odt_tools
+if (!function_exists('file_tools_use_folder_structure')) {
+    function file_tools_use_folder_structure() {
+        return true;
+    }
+}

@@ -337,7 +337,7 @@ var FileUpload = React.createClass({
     getInitialState() {
         return {
             showModal: false,
-            uploading: false,
+            uploading: 'waiting_for_input',
             files: [],
             succeeded: new Set(),
             failed: new Set(),
@@ -345,7 +345,15 @@ var FileUpload = React.createClass({
         };
     },
     close() { this.setState({ showModal: false }); },
-    open() { this.setState({ showModal: true }); },
+    open() {
+        this.setState({
+            showModal: true,
+            uploading: 'waiting_for_input',
+            files: [],
+            succeeded: new Set(),
+            failed: new Set()
+        });
+    },
     setAccessId(accessId) {
         this.setState({
             accessId: accessId
@@ -367,14 +375,20 @@ var FileUpload = React.createClass({
         }.bind(this));
 
 
-        if (this.state.uploading) {
+        if (this.state.uploading === 'waiting_for_input') {
+            var uploadButton = (<ButtonInput type="submit" bsStyle="primary" value={elgg.echo('upload')} />)
+        } else if (this.state.uploading === 'uploading') {
             var uploadButton = (
                 <ButtonInput type="submit" bsStyle="primary" disabled={true}>
                     {elgg.echo('pleiofile:uploading')}
                 </ButtonInput>
             );
         } else {
-            var uploadButton = (<ButtonInput type="submit" bsStyle="primary" value={elgg.echo('upload')} />)
+            var uploadButton = (
+                <ButtonInput type="button" bsStyle="primary" onClick={this.clickCloseButton}>
+                    {elgg.echo('pleiofile:close')}
+                </ButtonInput>
+            );
         }
 
         return (
@@ -403,6 +417,10 @@ var FileUpload = React.createClass({
             </div>
         )
     },
+    clickCloseButton(e) {
+        e.preventDefault();
+        this.close();
+    },
     changeFiles(e) {
         this.setState({
             files: e.target.files,
@@ -417,7 +435,7 @@ var FileUpload = React.createClass({
         e.preventDefault();
 
         this.setState({
-            uploading: true
+            uploading: 'uploading'
         });
 
         var total = this.state.files.length;
@@ -446,7 +464,7 @@ var FileUpload = React.createClass({
                     total -= 1;
                     if (total === 0) {
                         this.setState({
-                            uploading: false
+                            uploading: 'completed'
                         });
                         this.props.onComplete();
                     }
@@ -464,14 +482,16 @@ var FileEdit = React.createClass({
             guid: false,
             showModal: false,
             title: '',
-            accessId: false
+            accessId: false,
+            parentGuid: this.props.parentGuid
         };
     },
     setFile: function(file) {
         this.setState({
             guid: file.guid,
             title: file.title,
-            accessId: file.access_id
+            accessId: file.access_id,
+            parentGuid: this.props.parentGuid
         });
     },
     close() { this.setState({ showModal: false }); },
@@ -493,6 +513,7 @@ var FileEdit = React.createClass({
                             <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
+                            <FolderSelect folderTree={this.props.folderTree} folderGuid={0} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />
                             <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('edit')} />
                         </form>
                     </Modal.Body>
@@ -506,6 +527,9 @@ var FileEdit = React.createClass({
     changeAccessId(e) {
         this.setState({accessId: e.target.value});
     },
+    changeParentGuid(e) {
+        this.setState({parentGuid: e.target.value});
+    },
     edit(e) {
         e.preventDefault();
         this.close();
@@ -515,7 +539,8 @@ var FileEdit = React.createClass({
             data: {
                 guid: this.state.guid,
                 title: this.state.title,
-                access_id: this.state.accessId
+                access_id: this.state.accessId,
+                parent_guid: this.state.parentGuid
             },
             type: 'POST',
             success: function(data) {
@@ -531,6 +556,7 @@ var FolderEdit = React.createClass({
             guid: false,
             title:'',
             accessId: this.props.defaultAccessId,
+            parentGuid: this.props.parentGuid,
             showModal: false
         };
     },
@@ -539,7 +565,8 @@ var FolderEdit = React.createClass({
             this.setState({
                 guid: folder.guid,
                 title: folder.title,
-                accessId: folder.access_id
+                accessId: folder.access_id,
+                parentGuid: this.props.parentGuid
             });
         } else {
             this.setState(this.getInitialState());
@@ -551,6 +578,7 @@ var FolderEdit = React.createClass({
         if (this.state.guid) {
             var modalTitle = elgg.echo('pleiofile:edit_folder');
             var buttonValue = elgg.echo('edit');
+            var folderSelect = (<FolderSelect folderTree={this.props.folderTree} folderGuid={this.state.guid} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />);
         } else {
             var modalTitle = elgg.echo('pleiofile:create_folder');
             var buttonValue = elgg.echo('create');
@@ -572,6 +600,7 @@ var FolderEdit = React.createClass({
                             <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
+                            {folderSelect}
                             <ButtonInput type="submit" bsStyle="primary" value={buttonValue} />
                         </form>
                     </Modal.Body>
@@ -585,6 +614,9 @@ var FolderEdit = React.createClass({
     changeAccessId(e) {
         this.setState({accessId: e.target.value});
     },
+    changeParentGuid(e) {
+        this.setState({parentGuid: e.target.value});
+    },
     create(e) {
         e.preventDefault();
         this.close();
@@ -594,12 +626,13 @@ var FolderEdit = React.createClass({
             var data = {
                 'guid': this.state.guid,
                 'title': this.state.title,
-                'access_id': this.state.accessId
+                'access_id': this.state.accessId,
+                'parent_guid': this.state.parentGuid
             };
         } else {
             var url = '/' + elgg.security.addToken("action/pleiofile/create_folder");
             var data = {
-                'parent_guid': this.props.folderGuid,
+                'parent_guid': this.props.parentGuid,
                 'title': this.state.title,
                 'access_id': this.state.accessId
             };
@@ -620,6 +653,7 @@ var FileBrowser = React.createClass({
     getInitialState: function() {
         return {
             folderGuid: this.props.homeGuid,
+            folderTree: [],
             breadcrumb: [],
             items: new OrderedSet,
             sortOn: 'title',
@@ -629,9 +663,15 @@ var FileBrowser = React.createClass({
         }
     },
     componentDidMount: function() {
-        this.getItems();
+        window.addEventListener('popstate', this.readHash);
+        this.readHash();
+    },
+    readHash: function() {
+        var guid = parseInt(window.location.hash.replace("#",""));
+        this.openFolder(guid);
     },
     getItems: function() {
+        this.getTree();
         $jq19.ajax({
             url: '/pleiofile/browse',
             dataType: 'json',
@@ -648,10 +688,19 @@ var FileBrowser = React.createClass({
             }.bind(this)
         });
     },
+    getTree: function() {
+        $.get('/pleiofile/folder_tree?container_guid=' + this.props.homeGuid, function(result) {
+            this.setState({
+                folderTree: result
+            });
+        }.bind(this));
+    },
     openFolder: function(guid) {
         if (guid) {
             this.state.folderGuid = guid;
+            window.location.hash = guid;
         } else {
+            window.location.hash = '';
             this.state.folderGuid = this.props.homeGuid;
         }
 
@@ -750,13 +799,17 @@ var FileBrowser = React.createClass({
                 {add}
                 <FileList items={this.state.items} onComplete={this.getItems} onOpenFolder={this.openFolder} onEditFile={this.editFile} onEditFolder={this.editFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
                 <FileUpload ref="fileUpload" folderGuid={this.state.folderGuid} onComplete={this.getItems} />
-                <FolderEdit ref="folderEdit" folderGuid={this.state.folderGuid} onComplete={this.getItems} folder={this.state.editFolder} defaultAccessId={this.state.accessId} />
-                <FileEdit ref="fileEdit" onComplete={this.getItems} file={this.state.editFile} />
+                <FolderEdit ref="folderEdit" folderTree={this.state.folderTree} parentGuid={this.state.folderGuid} onComplete={this.getItems} folder={this.state.editFolder} defaultAccessId={this.state.accessId} />
+                <FileEdit ref="fileEdit" folderTree={this.state.folderTree} parentGuid={this.state.folderGuid} onComplete={this.getItems} file={this.state.editFile} />
             </div>
         );
     },
     newFile: function() {
-        window.open('/odt_editor/create' + this.state.path, '_blank');
+        var location = '/odt_editor/create/' + this.props.homeGuid;
+        if (this.props.homeGuid !== this.state.folderGuid) {
+            location += '?folder_guid=' + this.state.folderGuid;
+        }
+        window.location = location;
     },
     uploadFile: function() {
         this.refs['fileUpload'].setAccessId(this.state.accessId);
@@ -768,7 +821,6 @@ var FileBrowser = React.createClass({
     },
     createFolder: function() {
         this.refs['folderEdit'].setFolder({
-            path: null,
             title: '',
             access_id: this.state.accessId
         });
@@ -778,6 +830,45 @@ var FileBrowser = React.createClass({
         this.refs['folderEdit'].setFolder(folder);
         this.refs['folderEdit'].open();
     }
+});
+
+var FolderSelect = React.createClass({
+    onChange: function(e) {
+        this.props.onChange(e);
+    },
+    parseTree: function() {
+        var tree = []
+        var iterateTree = function(folder, prefix) {
+            if (folder.guid === this.props.folderGuid) {
+                return;
+            }
+
+            tree.push({
+                guid: folder.guid,
+                title: prefix + ' ' + folder.title
+            });
+
+            for (var i=0; i < folder.children.length; i++) {
+                iterateTree(folder.children[i], prefix + '-');
+            }
+        }.bind(this);
+
+        iterateTree(this.props.folderTree, '');
+        return tree;
+    },
+    render: function() {
+        var options = $.map(this.parseTree(), function(item) {
+            return (
+                <option key={item.guid} value={item.guid}>{item.title}</option>
+            );
+        }.bind(this));
+
+        return (
+            <Input type="select" ref="parentGuid" label={elgg.echo('pleiofile:parent_folder')} value={this.props.parentGuid} onChange={this.onChange}>
+                {options}
+            </Input>
+        );
+    },
 });
 
 var BreadcrumbItem = React.createClass({

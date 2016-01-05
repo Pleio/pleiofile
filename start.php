@@ -40,9 +40,7 @@ function pleiofile_init() {
     elgg_register_plugin_hook_handler("permissions_check", "all", "pleiofile_permissions_check");
     elgg_register_plugin_hook_handler("container_permissions_check", "all", "pleiofile_container_permissions_check");
 
-    // @todo!
     elgg_register_widget_type("group_files", elgg_echo("file:group"), elgg_echo("widgets:group_files:description"), "groups");
-    elgg_register_widget_type("index_file", elgg_echo("file"), elgg_echo("widgets:index_file:description"), "index", true);
 
     elgg_register_entity_url_handler("object", PLEIOFILE_FILE_OBJECT, "pleiofile_file_url_handler");
     elgg_register_entity_url_handler("object", PLEIOFILE_FOLDER_OBJECT, "pleiofile_folder_url_handler");
@@ -92,8 +90,10 @@ function pleiofile_page_handler($url) {
     gatekeeper();
 
     switch ($url[0]) {
+        case "folder_tree":
+            include("api/folder_tree.php");
+            return true;
         case "browse":
-            set_input('path', array_slice($url, 1));
             include("api/browse.php");
             return true;
         case "bulk_download":

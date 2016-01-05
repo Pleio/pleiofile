@@ -18,7 +18,8 @@ $browser = new PleioFileBrowser();
 try {
     $browser->updateFile($file, array(
         'title' => get_input('title'),
-        'access_id' => (int) get_input('access_id')
+        'access_id' => (int) get_input('access_id'),
+        'parent_guid' => (int) get_input('parent_guid')
     ));
 } catch (Exception $e) {
     http_response_code(500);

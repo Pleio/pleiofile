@@ -20,6 +20,47 @@ class PleioFileBrowser {
         return array_reverse($path);
     }
 
+    public function getFolderTree($container) {
+        $db_prefix = elgg_get_config("dbprefix");
+        $options = array(
+            'type' => 'object',
+            'subtype' => 'folder',
+            'container_guid' => $container->guid,
+            'limit' => 1000,
+            'joins' => "JOIN {$db_prefix}objects_entity oe ON e.guid = oe.guid",
+            'order_by' => 'oe.title ASC'
+        );
+
+        $children = array();
+        foreach (elgg_get_entities($options) as $folder) {
+            if (!array_key_exists($folder->parent_guid, $children)) {
+                $children[$folder->parent_guid] = array();
+            }
+            $children[$folder->parent_guid][] = $folder;
+        }
+
+        $get_folder = function($parent_guid) use (&$get_folder, $children) {
+			$result = array();
+
+			if (array_key_exists($parent_guid, $children)) {
+				foreach ($children[$parent_guid] as $child) {
+					$result[] = array(
+						'folder' => $child,
+						'children' => $get_folder($child->guid)
+					);
+					$i++;
+				}
+			}
+
+			return $result;
+		};
+
+		return array(
+            'folder' => $container,
+            'children' => $get_folder(0)
+        );
+    }
+
     public function getFolderContents($folder) {
         if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
             $container = $folder;
@@ -105,6 +146,14 @@ class PleioFileBrowser {
         $folder->title = $params['title'];
         $folder->access_id = $params['access_id'];
 
+        if ($params['parent_guid'] && $folder->parent_guid !== $folder->guid) {
+            if ($params['parent_guid'] == $folder->container_guid) {
+                $params['parent_guid'] = 0;
+            }
+
+            $folder->parent_guid = $params['parent_guid'];
+        }
+
         return $folder->save();
     }
 
@@ -173,15 +222,28 @@ class PleioFileBrowser {
     }
 
     public function updateFile($file, $params = array()) {
-        $parents = $file->getEntitiesFromRelationship(array(
-            'relationship' => "folder_of",
-            'inverse' => true
-        ));
+        if (!$file->canEdit()) {
+            return true;
+        }
 
-        if ($parents) {
-            $parent = $parents[0];
-        } else {
-            $parent = $file->getContainerEntity();
+        if ($params['parent_guid']) {
+            $parent = get_entity($params['parent_guid']);
+            if ($parent->container_guid !== $file->container_guid) {
+                unset($parent);
+            }
+        }
+
+        if (!$parent) {
+            $parents = $file->getEntitiesFromRelationship(array(
+                'relationship' => "folder_of",
+                'inverse' => true
+            ));
+
+            if ($parents) {
+                $parent = $parents[0];
+            } else {
+                $parent = $file->getContainerEntity();
+            }
         }
 
         $file->title = $params['title'];
