@@ -3,10 +3,10 @@
   <name>Pleiofile</name>
   <author>Stichting Pleio</author>
   <version>0.1</version>
-  <description>File and folder management.</description>
+  <description>Advanced file and folder management plugin for groups.</description>
   <website>https://www.pleio.nl/</website>
-  <repository>https://github.com/Pleio/pleio_file</repository>
-  <bugtracker>https://github.com/Pleio/pleio_file/issues</bugtracker>
+  <repository>https://github.com/Pleio/pleiofile</repository>
+  <bugtracker>https://github.com/Pleio/pleiofile/issues</bugtracker>
   <license>GNU General Public License version 2</license>
 
   <requires>
