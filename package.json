@@ -24,6 +24,16 @@
     "lodash.assign": "^3.2.0",
     "vinyl-source-stream": "1.1.0",
     "vinyl-buffer": "1.0.0",
-    "browser-sync": "2.10.0"
+    "browser-sync": "2.10.0",
+    "precommit-hook": "3.0.0"
+  },
+  "scripts": {
+    "build": "gulp build"
+  },
+  "pre-commit": [
+    "build"
+  ],
+  "devDependencies": {
+    "precommit-hook": "^3.0.0"
   }
 }

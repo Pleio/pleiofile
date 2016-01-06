@@ -11,23 +11,23 @@ var assign = require('lodash.assign');
 
 var customOpts = {
     entries: ['static/js/src/pleiofile.jsx'],
-    debug: true
+    extensions: ['.jsx']
 };
-
-var opts = assign({}, watchify.args, customOpts);
-
-var b = watchify(browserify(opts));
-
-b.transform('babelify', {
-    presets: ['es2015', 'react']
-})
-
-// on update recompile
-b.on('update', watch);
-b.on('log', gutil.log);
 
 gulp.task('watch', watch);
 function watch() {
+    customOpts['debug'] = true;
+    var opts = assign({}, watchify.args, customOpts);
+    var b = watchify(browserify(opts));
+
+    b.transform('babelify', {
+        presets: ['es2015', 'react']
+    })
+
+    // on update recompile
+    b.on('update', watch);
+    b.on('log', gutil.log);
+
     return b.bundle()
         .on('error', gutil.log.bind(gutil, 'Browserify error'))
         .pipe(source('pleiofile.js'))
@@ -38,22 +38,21 @@ function watch() {
 }
 
 gulp.task('build', function() {
+    var opts = assign({}, watchify.args, customOpts);
+    var b = browserify(opts);
+
+    b.transform('babelify', {
+        presets: ['es2015', 'react']
+    })
+
+    b.on('log', gutil.log);
+
     return b.bundle()
             .pipe(source('pleiofile.js'))
             .pipe(buffer())
-            .pipe(sourcemaps.init({loadMaps: true}))
             .pipe(uglify())
             .on('error', gutil.log)
-            .pipe(sourcemaps.write('maps'))
+            .pipe(sourcemaps.init({loadMaps: true}))
+            .pipe(sourcemaps.write('./'))
             .pipe(gulp.dest('static/js/build'));
-});
-
-gulp.task('default', ['watch'], function() {
-    browserSync.init({
-        dev: {
-            options: {
-                proxy: 'provincies.pleio.dev'
-            }
-        }
-    });
 });
