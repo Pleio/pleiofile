@@ -50,6 +50,7 @@ foreach ($children as $child) {
         'is_writable' => $child->canEdit(),
         'access_id' => $child->access_id,
         'created_by' => $child->getOwnerEntity()->name,
+        'tags' => $child->tags,
         'time_updated' => date('c', $child->time_updated)
     );
 

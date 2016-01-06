@@ -10,6 +10,7 @@ class FolderEdit extends React.Component {
         this.open = this.open.bind(this);
         this.changeTitle = this.changeTitle.bind(this);
         this.changeAccessId = this.changeAccessId.bind(this);
+        this.changeTags = this.changeTags.bind(this);
         this.changeParentGuid = this.changeParentGuid.bind(this);
         this.create = this.create.bind(this);
 
@@ -17,6 +18,7 @@ class FolderEdit extends React.Component {
             guid: false,
             title:'',
             accessId: this.props.defaultAccessId,
+            tags: '',
             parentGuid: this.props.parentGuid,
             showModal: false
         };
@@ -28,6 +30,7 @@ class FolderEdit extends React.Component {
                 guid: folder.guid,
                 title: folder.title,
                 accessId: folder.access_id,
+                tags: folder.tags,
                 parentGuid: this.props.parentGuid
             });
         } else {
@@ -35,6 +38,7 @@ class FolderEdit extends React.Component {
                 guid: false,
                 title:'',
                 accessId: this.props.defaultAccessId,
+                tags: '',
                 parentGuid: this.props.parentGuid,
                 showModal: false
             });
@@ -70,6 +74,7 @@ class FolderEdit extends React.Component {
                             <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
+                            <Input type="text" label={elgg.echo('tags')} name="tags" value={this.state.tags} onChange={this.changeTags} />
                             {folderSelect}
                             <ButtonInput type="submit" bsStyle="primary" value={buttonValue} />
                         </form>
@@ -87,6 +92,10 @@ class FolderEdit extends React.Component {
         this.setState({accessId: e.target.value});
     }
 
+    changeTags(e) {
+        this.setState({tags: e.target.value});
+    }
+
     changeParentGuid(e) {
         this.setState({parentGuid: e.target.value});
     }
@@ -95,21 +104,18 @@ class FolderEdit extends React.Component {
         e.preventDefault();
         this.close();
 
+        var data = {
+            'title': this.state.title,
+            'access_id': this.state.accessId,
+            'tags': this.state.tags,
+            'parent_guid': this.state.parentGuid
+        };
+
         if (this.state.guid) {
+            data['guid'] = this.state.guid;
             var url = '/' + elgg.security.addToken("action/pleiofile/update_folder");
-            var data = {
-                'guid': this.state.guid,
-                'title': this.state.title,
-                'access_id': this.state.accessId,
-                'parent_guid': this.state.parentGuid
-            };
         } else {
             var url = '/' + elgg.security.addToken("action/pleiofile/create_folder");
-            var data = {
-                'parent_guid': this.props.parentGuid,
-                'title': this.state.title,
-                'access_id': this.state.accessId
-            };
         }
 
         $jq19.ajax({

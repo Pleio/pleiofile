@@ -9,6 +9,7 @@ class FileEdit extends React.Component {
         this.open = this.open.bind(this);
         this.changeTitle = this.changeTitle.bind(this);
         this.changeAccessId = this.changeAccessId.bind(this);
+        this.changeTags = this.changeTags.bind(this);
         this.changeParentGuid = this.changeParentGuid.bind(this);
         this.edit = this.edit.bind(this);
 
@@ -17,6 +18,7 @@ class FileEdit extends React.Component {
             showModal: false,
             title: '',
             accessId: false,
+            tags: '',
             parentGuid: this.props.parentGuid
         };
     }
@@ -26,6 +28,7 @@ class FileEdit extends React.Component {
             guid: file.guid,
             title: file.title,
             accessId: file.access_id,
+            tags: file.tags,
             parentGuid: this.props.parentGuid
         });
     }
@@ -50,6 +53,7 @@ class FileEdit extends React.Component {
                             <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
+                            <Input type="text" label={elgg.echo('tags')} name="tags" value={this.state.tags} onChange={this.changeTags} />
                             <FolderSelect folderTree={this.props.folderTree} folderGuid={0} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />
                             <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('edit')} />
                         </form>
@@ -67,6 +71,10 @@ class FileEdit extends React.Component {
         this.setState({accessId: e.target.value});
     }
 
+    changeTags(e) {
+        this.setState({tags: e.target.value});
+    }
+
     changeParentGuid(e) {
         this.setState({parentGuid: e.target.value});
     }
@@ -81,6 +89,7 @@ class FileEdit extends React.Component {
                 guid: this.state.guid,
                 title: this.state.title,
                 access_id: this.state.accessId,
+                tags: this.state.tags,
                 parent_guid: this.state.parentGuid
             },
             type: 'POST',

@@ -18,6 +18,7 @@ $browser = new PleioFileBrowser();
 try {
     $browser->updateFolder($folder, array(
         'title' => get_input('title'),
+        'tags' => string_to_tag_array(get_input('tags')),
         'parent_guid' => get_input('parent_guid'),
         'access_id' => (int) get_input('access_id')
     ));

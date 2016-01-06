@@ -18,6 +18,7 @@ $browser = new PleioFileBrowser();
 try {
     $browser->createFolder($parent, array(
         'title' => get_input('title'),
+        'tags' => string_to_tag_array(get_input('tags')),
         'access_id' => (int) get_input('access_id')
     ));
 } catch (Exception $e) {

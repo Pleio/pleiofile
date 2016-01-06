@@ -122,6 +122,7 @@ class PleioFileBrowser {
         $folder->subtype = 'folder';
         $folder->title = $params['title'];
         $folder->container_guid = $container->guid;
+        $folder->tags = $params['tags'];
 
         if ($parent instanceof ElggObject) { // lower level folder
             $folder->parent_guid = $parent->guid;
@@ -145,6 +146,7 @@ class PleioFileBrowser {
     public function updateFolder($folder, $params = array()) {
         $folder->title = $params['title'];
         $folder->access_id = $params['access_id'];
+        $folder->tags = $params['tags'];
 
         if ($params['parent_guid'] && $folder->parent_guid !== $folder->guid) {
             if ($params['parent_guid'] == $folder->container_guid) {
@@ -248,6 +250,7 @@ class PleioFileBrowser {
 
         $file->title = $params['title'];
         $file->access_id = $params['access_id'];
+        $file->tags = $params['tags'];
         $result = $file->save();
 
         // make sure the relationship is not deleted (by file_tools code), so add again.
