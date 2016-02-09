@@ -230,9 +230,6 @@ class PleioFileBrowser {
 
         if ($params['parent_guid']) {
             $parent = get_entity($params['parent_guid']);
-            if ($parent->container_guid !== $file->container_guid) {
-                unset($parent);
-            }
         }
 
         if (!$parent) {
@@ -253,9 +250,10 @@ class PleioFileBrowser {
         $file->tags = $params['tags'];
         $result = $file->save();
 
-        // make sure the relationship is not deleted (by file_tools code), so add again.
         if ($parent instanceof ElggObject) {
             add_entity_relationship($parent->guid, "folder_of", $file->guid);
+        } elseif ($parent instanceof ElggGroup) {
+            remove_entity_relationships($file->guid, "folder_of", true);
         }
 
         return $result;

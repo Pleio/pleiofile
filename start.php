@@ -87,8 +87,6 @@ function pleiofile_file_route_hook($hook, $type, $returnvalue, $params) {
 }
 
 function pleiofile_page_handler($url) {
-    gatekeeper();
-
     switch ($url[0]) {
         case "folder_tree":
             include("api/folder_tree.php");

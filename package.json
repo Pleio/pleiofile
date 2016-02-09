@@ -28,7 +28,9 @@
     "precommit-hook": "3.0.0"
   },
   "scripts": {
-    "build": "gulp build && git add static/js/build/pleiofile.js*"
+    "build": "gulp build && git add static/js/build/pleiofile.js*",
+    "lint": "jshint .",
+    "validate": "npm ls"
   },
   "pre-commit": [
     "build"

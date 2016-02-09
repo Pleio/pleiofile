@@ -70,7 +70,7 @@ class FolderEdit extends React.Component {
                     </Modal.Header>
                     <Modal.Body>
                         <form onSubmit={this.create}>
-                            <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} value={this.state.title} onChange={this.changeTitle} autoFocus="true" />
+                            <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} value={this.state.title} onChange={this.changeTitle} autoFocus={true} />
                             <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>

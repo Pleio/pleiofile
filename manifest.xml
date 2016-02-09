@@ -20,10 +20,5 @@
     <priority>after</priority>
   </requires>
 
-  <requires>
-    <type>plugin</type>
-    <name>odt_editor</name>
-  </requires>
-
   <category>Pleio</category>
 </plugin_manifest>

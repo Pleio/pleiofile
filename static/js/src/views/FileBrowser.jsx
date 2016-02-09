@@ -154,11 +154,17 @@ class FileBrowser extends React.Component {
         var home = ( <BreadcrumbItem key="0" path={this.props.home} title="Home" onOpenFolder={this.openFolder} /> );
         breadcrumb.unshift(home);
 
+        if (_appData['odt_enabled']) {
+            var create_odt = (
+                <MenuItem onClick={this.newFile}>{elgg.echo('pleiofile:create_file')}</MenuItem>
+            )
+        }
+
         if (this.state.isWritable) {
             var add = (
                 <div className="pleiobox-btn-group">
                     <DropdownButton id="new" title={elgg.echo('add')} pullRight={true}>
-                        <MenuItem onClick={this.newFile}>{elgg.echo('pleiofile:create_file')}</MenuItem>
+                        {create_odt}
                         <MenuItem onClick={this.uploadFile}>{elgg.echo('pleiofile:upload_file')}</MenuItem>
                         <MenuItem onClick={this.createFolder}>{elgg.echo('pleiofile:create_folder')}</MenuItem>
                     </DropdownButton>
