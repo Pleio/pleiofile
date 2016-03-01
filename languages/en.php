@@ -20,6 +20,7 @@ $english = array(
     'pleiofile:uploading' => 'Uploading...',
     'pleiofile:close' => 'Close',
     'pleiofile:download' => 'Download',
+    'pleiofile:entity_not_found' => 'Could not find the requested object. It either does not exist or you do not have access to it.',
     'pleiofile:file_management:can_add' => 'Group members can add files and folders',
     'pleiofile:file_management:can_edit' => 'Group members can edit files and folders of others',
     'pleiofile:widget:settings:sort' => 'Sort',

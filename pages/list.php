@@ -11,6 +11,11 @@ elgg_load_css('bootstrap');
 elgg_load_css('pleiofile');
 
 $page_owner = elgg_get_page_owner_entity();
+if (!$page_owner) {
+    register_error(elgg_echo("pleiofile:entity_not_found"));
+    forward();
+}
+
 $title_text = elgg_echo("file:user", array($page_owner->name));
 
 elgg_push_context('pleiofile');

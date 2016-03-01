@@ -20,6 +20,7 @@ $dutch = array(
     'pleiofile:uploading' => 'Bezig met uploaden...',
     'pleiofile:close' => 'Sluiten',
     'pleiofile:download' => 'Downloaden',
+    'pleiofile:entity_not_found' => 'Kan het gevraagde object niet tonen. Het bestaat niet of je hebt er geen toegang tot.',
     'pleiofile:file_management:can_add' => 'Groepsleden kunnen bestanden en mappen toevoegen',
     'pleiofile:file_management:can_edit' => 'Groepsleden kunnen bestanden en mappen van anderen wijzigen',
     'pleiofile:widget:settings:sort' => 'Sortering',

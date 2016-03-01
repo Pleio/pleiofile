@@ -43,6 +43,9 @@ function pleiofile_init() {
     elgg_register_plugin_hook_handler("permissions_check", "all", "pleiofile_permissions_check");
     elgg_register_plugin_hook_handler("container_permissions_check", "all", "pleiofile_container_permissions_check");
 
+    elgg_register_plugin_hook_handler("register", "menu:title", "pleiofile_menu_title_hook_handler");
+    elgg_register_plugin_hook_handler("register", "menu:filter", "pleiofile_menu_filter_hook_handler");
+
     elgg_register_widget_type("file_tree", elgg_echo("widgets:file_tree:title"), elgg_echo("widgets:file_tree:description"), "dashboard,profile,groups", true);
 
     elgg_register_entity_url_handler("object", PLEIOFILE_FILE_OBJECT, "pleiofile_file_url_handler");
@@ -78,6 +81,10 @@ function pleiofile_file_route_hook($hook, $type, $returnvalue, $params) {
     pleiofile_set_page_owner($url);
 
     switch ($url[0]) {
+        case "owner":
+            $returnvalue = false;
+            include(dirname(__FILE__) . "/pages/list.php");
+            break;
         case "group":
             $returnvalue = false;
             include(dirname(__FILE__) . "/pages/list.php");

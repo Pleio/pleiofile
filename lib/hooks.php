@@ -84,3 +84,36 @@ function pleiofile_folder_icon_hook($hook, $type, $returnvalue, $params) {
 
     return $result;
 }
+
+function pleiofile_menu_title_hook_handler($hook, $type, $returnvalue, $params) {
+    if (!elgg_in_context("file")) {
+        return $returnvalue;
+    }
+
+    foreach ($returnvalue as $key => $item) {
+        if ($item->getName() == "add") {
+            unset($returnvalue[$key]);
+        }
+    }
+
+    return $returnvalue;
+}
+
+function pleiofile_menu_filter_hook_handler($hook, $type, $returnvalue, $params) {
+	if (!elgg_in_context("file")) {
+        return $returnvalue;
+	}
+
+    foreach ($returnvalue as $key => $item) {
+        switch ($item->getName()) {
+            case "friend":
+                unset($returnvalue[$key]);
+                break;
+            case "all":
+                $item->setHref("/file/all");
+                break;
+        }
+    }
+
+	return $returnvalue;
+}
