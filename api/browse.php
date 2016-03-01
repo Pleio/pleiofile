@@ -22,10 +22,10 @@ $json['guid'] = $folder->guid;
 $json['is_writable'] = $folder->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT) && $folder->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
 
 if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
-    $json['title'] = $folder->name;
+    $json['title'] = htmlspecialchars_decode($folder->name, ENT_QUOTES);
     $json['access_id'] = get_default_access();
 } else {
-    $json['title'] = $folder->title;
+    $json['title'] = htmlspecialchars_decode($folder->title, ENT_QUOTES);
     $json['access_id'] = $folder->access_id;
 }
 
@@ -36,7 +36,7 @@ $json['breadcrumb'] = array();
 foreach ($browser->getPath($folder) as $item) {
     $json['breadcrumb'][] = array(
         'guid' => $item->guid,
-        'title' => $item->title
+        'title' => htmlspecialchars_decode($item->title, ENT_QUOTES)
     );
 }
 

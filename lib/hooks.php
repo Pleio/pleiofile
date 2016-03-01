@@ -56,3 +56,31 @@ function pleiofile_container_permissions_check($hook_name, $entity_type, $return
 
     return $return_value;
 }
+
+function pleiofile_folder_icon_hook($hook, $type, $returnvalue, $params) {
+    $result = $returnvalue;
+
+	if (empty($params) | !is_array($params)) {
+        return $result;
+    }
+
+    $entity = elgg_extract("entity", $params);
+	$size = elgg_extract("size", $params, "small");
+
+    if (!elgg_instanceof($entity, "object", "folder")) {
+        return $result;
+    }
+
+	switch($size){
+		case "topbar":
+		case "tiny":
+		case "small":
+			$result = "mod/pleiofile/graphics/folder/" . $size . ".png";
+			break;
+		default:
+			$result = "mod/pleiofile/graphics/folder/medium.png";
+			break;
+	}
+
+    return $result;
+}

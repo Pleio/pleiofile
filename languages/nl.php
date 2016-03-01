@@ -27,7 +27,8 @@ $dutch = array(
     'pleiofile:widget:settings:sort:time_created' => 'Aanmaakdatum',
     'pleiofile:widget:settings:sort:asc' => 'Oplopend',
     'pleiofile:widget:settings:sort:desc' => 'Aflopend',
-    'widgets:group_files:description' => 'Toon de bestanden in de hoofdmap van de groep.'
+    'widgets:file_tree:title' => 'Bestanden en mappen',
+    'widgets:file_tree:description' => 'Toon een lijst van bestanden en mappen.'
 );
 
 add_translation("nl", $dutch);

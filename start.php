@@ -22,6 +22,9 @@ function pleiofile_init() {
     elgg_register_css("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
     elgg_register_css("pleiofile", "mod/pleiofile/static/css/pleiofile.css");
 
+    elgg_register_css("pleiofile-global", "mod/pleiofile/static/css/pleiofile-global.css");
+    elgg_load_css('pleiofile-global');
+
     elgg_register_page_handler("pleiofile", "pleiofile_page_handler");
 
     $base = dirname(__FILE__) . "/actions/";
@@ -40,10 +43,12 @@ function pleiofile_init() {
     elgg_register_plugin_hook_handler("permissions_check", "all", "pleiofile_permissions_check");
     elgg_register_plugin_hook_handler("container_permissions_check", "all", "pleiofile_container_permissions_check");
 
-    elgg_register_widget_type("group_files", elgg_echo("file:group"), elgg_echo("widgets:group_files:description"), "groups");
+    elgg_register_widget_type("file_tree", elgg_echo("widgets:file_tree:title"), elgg_echo("widgets:file_tree:description"), "dashboard,profile,groups", true);
 
     elgg_register_entity_url_handler("object", PLEIOFILE_FILE_OBJECT, "pleiofile_file_url_handler");
     elgg_register_entity_url_handler("object", PLEIOFILE_FOLDER_OBJECT, "pleiofile_folder_url_handler");
+
+    elgg_register_plugin_hook_handler("entity:icon:url", "object", "pleiofile_folder_icon_hook");
 }
 
 elgg_register_event_handler("init", "system", "pleiofile_init");

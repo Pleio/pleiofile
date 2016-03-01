@@ -27,7 +27,8 @@ $english = array(
     'pleiofile:widget:settings:sort:time_created' => 'Time created',
     'pleiofile:widget:settings:sort:asc' => 'Ascending',
     'pleiofile:widget:settings:sort:desc' => 'Descending',
-    'widgets:group_files:description' => 'Show the top level files in the current group.'
+    'widgets:file_tree:title' => 'Files and folders',
+    'widgets:file_tree:description' => 'Show a list of files and folders.'
 );
 
 add_translation("en", $english);
