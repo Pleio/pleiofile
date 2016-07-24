@@ -1,6 +1,7 @@
 import React from 'react';
 import { OrderedSet } from 'immutable';
 import Item from './Item';
+import $jq19 from 'jquery';
 
 class FileList extends React.Component {
     constructor(props) {
@@ -34,7 +35,7 @@ class FileList extends React.Component {
 
         // clear selection when clicking outside list
         $('html').mousedown(function(e) {
-            var table = document.getElementById('pleiobox-table');
+            var table = document.getElementById('pleiofile-table');
             if (!$.contains(table, e.target) && !$('body').hasClass('modal-open')) {
                 this.setState({
                     selected: new OrderedSet()
@@ -287,7 +288,7 @@ class FileList extends React.Component {
         }
 
         return (
-            <table id="pleiobox-table" className="table table-hover">
+            <table id="pleiofile-table" className="table table-hover">
             <thead>
                 <tr>
                     {header}

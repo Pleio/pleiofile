@@ -14,16 +14,8 @@ include_once(dirname(__FILE__) . "/lib/functions.php");
 include_once(dirname(__FILE__) . "/lib/hooks.php");
 
 function pleiofile_init() {
-    elgg_register_js("jquery-19", "https://code.jquery.com/jquery-1.9.1.min.js", 'head', -100);
-    elgg_register_js("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js", 'head', -99);
-    elgg_register_js("jquery-noconflict", "mod/pleiofile/static/js/build/jquery-noconflict.js", 'head', -98);
-    elgg_register_js("formdata-polyfill", "mod/pleiofile/static/js/formdata-polyfill.js", 'head', -97);
-
-    elgg_register_css("bootstrap", "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css");
-    elgg_register_css("pleiofile", "mod/pleiofile/static/css/pleiofile.css");
-
-    elgg_register_css("pleiofile-global", "mod/pleiofile/static/css/pleiofile-global.css");
-    elgg_load_css('pleiofile-global');
+    elgg_register_css("pleiofile", "mod/pleiofile/static/css/build/pleiofile.css");
+    elgg_register_js("pleiofile", "mod/pleiofile/static/js/build/pleiofile.js", "footer");
 
     elgg_register_page_handler("pleiofile", "pleiofile_page_handler");
 
@@ -81,10 +73,8 @@ function pleiofile_file_route_hook($hook, $type, $returnvalue, $params) {
     pleiofile_set_page_owner($url);
 
     switch ($url[0]) {
+        case "all":
         case "owner":
-            $returnvalue = false;
-            include(dirname(__FILE__) . "/pages/list.php");
-            break;
         case "group":
             $returnvalue = false;
             include(dirname(__FILE__) . "/pages/list.php");

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, Input, ButtonInput } from 'react-bootstrap';
+import $jq19 from 'jquery';
 
 class FileUpload extends React.Component {
     constructor(props) {

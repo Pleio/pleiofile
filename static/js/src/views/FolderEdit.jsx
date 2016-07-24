@@ -1,6 +1,7 @@
 import React from 'react';
 import FolderSelect from './elements/FolderSelect';
 import { Modal, Input, ButtonInput } from 'react-bootstrap';
+import $jq19 from 'jquery';
 
 class FolderEdit extends React.Component {
     constructor(props) {

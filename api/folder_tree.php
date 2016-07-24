@@ -1,8 +1,5 @@
 <?php
 
-elgg_push_context('group');
-elgg_push_context('pleiofile');
-
 $container_guid = get_input('container_guid');
 $container = get_entity($container_guid);
 
@@ -43,6 +40,3 @@ $json = $parse_folder($list);
 
 header('Content-Type: application/json');
 echo json_encode($json, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-
-elgg_pop_context();
-elgg_pop_context();

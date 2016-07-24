@@ -6,6 +6,7 @@ import FileUpload from './FileUpload';
 import FolderEdit from './FolderEdit';
 import FileEdit from './FileEdit';
 import FileList from './FileList';
+import $jq19 from 'jquery';
 
 class FileBrowser extends React.Component {
     constructor(props) {
@@ -162,7 +163,7 @@ class FileBrowser extends React.Component {
 
         if (this.state.isWritable) {
             var add = (
-                <div className="pleiobox-btn-group">
+                <div className="pleiofile-btn-group">
                     <DropdownButton id="new" title={elgg.echo('add')} pullRight={true}>
                         {create_odt}
                         <MenuItem onClick={this.uploadFile}>{elgg.echo('pleiofile:upload_file')}</MenuItem>
@@ -174,7 +175,7 @@ class FileBrowser extends React.Component {
 
         return (
             <div>
-                <div className="pleiobox-breadcrumb">
+                <div className="pleiofile-breadcrumb">
                     <Breadcrumb>
                         {breadcrumb}
                     </Breadcrumb>

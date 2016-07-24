@@ -26,10 +26,7 @@ $owner_link = elgg_view('output/url', array(
 ));
 $author_text = elgg_echo('byline', array($owner_link));
 
-$file_icon = elgg_view_entity_icon($file, 'tiny', array(
-	'img_class' => 'pleiofile-tiny-icon'
-));
-
+$file_icon = elgg_view_entity_icon($file, 'small');
 $date = elgg_view_friendly_time($file->time_created);
 
 $comments_count = $file->countComments();

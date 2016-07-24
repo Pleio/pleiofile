@@ -8,6 +8,7 @@ var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var gutil = require('gulp-util');
 var assign = require('lodash.assign');
+var sass = require('gulp-sass');
 
 var customOpts = {
     entries: ['static/js/src/pleiofile.jsx'],
@@ -36,6 +37,14 @@ function watch() {
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('static/js/build'));
 }
+
+gulp.task('css', function() {
+    return gulp.src('static/css/src/pleiofile.scss')
+    .pipe(sass({
+        includePaths: ['./bower_components/bootstrap-sass/assets/stylesheets'],
+    }))
+    .pipe(gulp.dest('static/css/build'));
+});
 
 gulp.task('build', function() {
     var opts = assign({}, watchify.args, customOpts);

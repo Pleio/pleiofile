@@ -1,72 +1,129 @@
 <?php
+$dbprefix = elgg_get_config('dbprefix');
 
-elgg_push_context('group');
-elgg_push_context('pleiofile');
+$container_guid = (int) get_input('container_guid');
 
-$folder_guid = get_input('folder_guid');
-$folder = get_entity($folder_guid);
+$limit = (int) get_input('limit', 20);
+$offset = (int) get_input('offset', 0);
 
-if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
-    elgg_set_page_owner_guid($folder->guid);
-} else {
-    elgg_set_page_owner_guid($folder->container_guid);
+if ($limit < 1 | $limit > 50) {
+    $limit = 20;
 }
 
-if (!$folder) {
-    http_response_code(404);
-    exit();
+if ($offset < 0) {
+    $offset = 0;
+}
+
+$order_by = get_input('order_by', 'title');
+$direction = get_input('direction', 'asc');
+
+if (!in_array($order_by, array('title', 'time_created', 'time_updated', 'access_id'))) {
+    $order_by = 'time_created';
+}
+
+if (!in_array($direction, array('asc', 'desc'))) {
+    $direction = 'asc';
+}
+
+if ($container_guid) {
+    $container = get_entity($container_guid);
 }
 
 $json = array();
-$json['guid'] = $folder->guid;
-$json['is_writable'] = $folder->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT) && $folder->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
 
-if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
-    $json['title'] = htmlspecialchars_decode($folder->name, ENT_QUOTES);
-    $json['access_id'] = get_default_access();
+if ($container) {
+    $json['guid'] = $container->guid;
+    $json['access_id'] = (int) $container->access_id;
+    $json['can_write'] = array(
+        'file' => $container->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT),
+        'folder' => $container->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT)
+    );
+
+    if ($container instanceof ElggUser | $container instanceof ElggGroup) {
+        $json['title'] = $container->name;
+    } else {
+        $json['title'] = $container->title;
+    }
 } else {
-    $json['title'] = htmlspecialchars_decode($folder->title, ENT_QUOTES);
-    $json['access_id'] = $folder->access_id;
-}
-
-$browser = new PleioFileBrowser();
-
-$json['breadcrumb'] = array();
-
-foreach ($browser->getPath($folder) as $item) {
-    $json['breadcrumb'][] = array(
-        'guid' => $item->guid,
-        'title' => htmlspecialchars_decode($item->title, ENT_QUOTES)
+    $json['guid'] = 0;
+    $json['access_id'] = (int) get_default_access();
+    $json['can_write'] = array(
+        'file' => true,
+        'folder' => false
     );
 }
 
-$json['children'] = array();
-$children = $browser->getFolderContents($folder);
-foreach ($children as $child) {
-    $tags = $child->tags;
-    if (!$tags) {
-        $tags = array();
-    }
-    $attributes = array(
-        'guid' => $child->guid,
-        'title' => htmlspecialchars_decode($child->title, ENT_QUOTES),
-        'is_dir' => $child instanceof ElggFile ? false : true,
-        'is_writable' => $child->canEdit(),
-        'access_id' => $child->access_id,
-        'created_by' => $child->getOwnerEntity()->name,
-        'tags' => $tags,
-        'time_updated' => date('c', $child->time_updated)
+if ($container) {
+    $file_options = array(
+        'type' => 'object',
+        'subtype' => 'file'
     );
 
-    if ($child instanceof ElggFile) {
-        $attributes['url'] = $child->getURL();
+    $folder_options = array(
+        'type' => 'object',
+        'subtype' => 'folder'
+    );
+
+    if ($container instanceof ElggUser | $container instanceof ElggGroup) {
+        // we are in the root folder of a user or group
+        $file_options['container_guid'] = $container->guid;
+        $file_options['wheres'] = "NOT EXISTS (SELECT 1 FROM {$dbprefix}entity_relationships r WHERE r.guid_two = e.guid AND r.relationship = 'folder_of')";
+        $folder_options['container_guid'] = $container->guid;
+        $folder_options['metadata_name_value_pairs'] = array(array(
+                'name' => 'parent_guid',
+                'value' => 0
+        ));
+    } else {
+        // we are in a subfolder
+        $file_options['container_guid'] = $container->container_guid;
+        $file_options['relationship'] = FILE_TOOLS_RELATIONSHIP;
+        $file_options['relationship_guid'] = $container_guid;
+        $folder_options['container_guid'] = $container->container_guid;
+        $folder_options['metadata_name_value_pairs'] = array(array(
+                'name' => 'parent_guid',
+                'value' => $container_guid
+        ));
     }
 
-    $json['children'][] = $attributes;
+    $folder_count = elgg_get_entities_from_metadata(array_merge($folder_options, array(
+        'count' => true
+    )));
+
+    $folder_options['limit'] = get_input('limit');
+    $folder_options['offset'] = get_input('offset');
+
+    $entities = array_merge(
+        elgg_get_entities_from_metadata($folder_options),
+        elgg_get_entities_from_relationship($file_options)
+    );
+
+} else {
+    $options = array(
+        'type' => 'object',
+        'subtype' => 'file',
+        'offset' => $offset,
+        'limit' => $limit
+    );
+
+    $entities = elgg_get_entities($options);
+}
+
+$json['entities'] = array();
+foreach ($entities as $entity) {
+    $json['entities'][] = array(
+        'guid' => $entity->guid,
+        'subtype' => $entity->getSubtype(),
+        'title' => htmlspecialchars_decode($entity->title, ENT_QUOTES),
+        'access_id' => (int) $entity->access_id,
+        'can_edit' => $entity->canEdit(),
+        'created_by_guid' => $entity->getOwnerEntity()->guid,
+        'created_by_name' => $entity->getOwnerEntity()->name,
+        'tags' => $entity->tags ? $entity->tags : array(),
+        'time_created' => date('c', $entity->time_created),
+        'time_updated' => date('c', $entity->time_updated),
+        'url' => $entity->getURL()
+    );
 }
 
 header('Content-Type: application/json');
 echo json_encode($json, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-
-elgg_pop_context();
-elgg_pop_context();

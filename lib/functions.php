@@ -9,6 +9,7 @@ function pleiofile_generate_file_thumbs(ElggObject $file) {
 
     $sizes = array(
         60 => "thumb",
+        153 => "tinythumb",
         153 => "smallthumb",
         600 => "largethumb"
     );
