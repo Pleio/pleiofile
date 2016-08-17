@@ -1,19 +1,22 @@
 import { combineReducers } from 'redux'
-import { CHANGE_SORT, SHOW_MODAL, HIDE_MODAL, FOLDER_CREATE, FOLDER_EDIT, FILE_EDIT, REQUEST_FOLDER, RECEIVE_FOLDER } from './actions'
+import { CHANGE_SORT, SHOW_MODAL, HIDE_MODAL, CREATE_FOLDER, EDIT_FOLDER, UPLOAD_FILE, EDIT_FILE, REQUEST_FOLDER, RECEIVE_FOLDER } from './actions'
 import { OrderedSet } from 'immutable';
 import { sortItems } from './helpers';
 
 function modal(state = {
-    current: null
+    current: null,
+    currentItem: undefined
 }, action) {
     switch (action.type) {
         case SHOW_MODAL:
             return Object.assign({}, state, {
                 current: action.modal,
+                currentItem: action.item
             })
         case HIDE_MODAL:
             return Object.assign({}, state, {
-                current: null
+                current: null,
+                currentItem: undefined
             })
         default:
             return state
@@ -25,7 +28,8 @@ function folder(state = {
     title: "",
     children: new OrderedSet,
     sortOn: "title",
-    sortAscending: true
+    sortAscending: true,
+    accessId: 0
 }, action) {
     switch (action.type) {
         case CHANGE_SORT:
@@ -48,8 +52,6 @@ function folder(state = {
             return state
     }
 }
-
-
 
 const rootReducer = combineReducers({
     modal,

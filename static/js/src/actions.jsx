@@ -4,7 +4,9 @@ export const CREATE_FOLDER = 'CREATE_FOLDER'
 export const REQUEST_CREATE_FOLDER = 'REQUEST_CREATE_FOLDER'
 
 export const EDIT_FOLDER = 'EDIT_FOLDER'
+
 export const EDIT_FILE = 'EDIT_FILE'
+export const UPLOAD_FILE = 'UPLOAD_FILE'
 
 export const SHOW_MODAL = 'SHOW_MODAL'
 export const HIDE_MODAL = 'HIDE_MODAL'
@@ -60,17 +62,19 @@ function requestCreateFolder(folder) {
     }
 }
 
-export function showModal(modal) {
+export function showModal(modal, item) {
     return {
         type: SHOW_MODAL,
-        modal
+        modal,
+        item
     }
 }
 
-export function hideModal(modal) {
+export function hideModal(modal, item) {
     return {
         type: HIDE_MODAL,
-        modal
+        modal,
+        item
     }
 }
 

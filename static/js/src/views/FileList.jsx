@@ -3,7 +3,7 @@ import { OrderedSet } from 'immutable';
 import Item from './Item';
 import $jq19 from 'jquery';
 import { connect } from 'react-redux';
-import { changeSort } from '../actions';
+import { changeSort, showModal } from '../actions';
 
 class FileList extends React.Component {
     constructor(props) {
@@ -60,8 +60,7 @@ class FileList extends React.Component {
         }
 
         if (nextState.selecting) {
-            var seq = new OrderedSet(this.props.items).toIndexedSeq();
-            console.log(new OrderedSet(this.props.items));
+            var seq = this.props.items.toIndexedSeq();
             var beginIndex = seq.findIndex(v => v == nextState.selectBegin);
             var endIndex = seq.findIndex(v => v == nextState.selectEnd);
 
@@ -147,9 +146,9 @@ class FileList extends React.Component {
 
         var selectedItem = this.state.selected.first();
         if (selectedItem['subtype'] == "folder") {
-            this.props.onEditFolder(selectedItem);
+            this.props.dispatch(showModal('folderEdit', selectedItem));
         } else {
-            this.props.onEditFile(selectedItem);
+            this.props.dispatch(showModal('fileEdit', selectedItem));
         }
     }
 
@@ -227,12 +226,12 @@ class FileList extends React.Component {
             </span>
         );
 
-        var isWritable = true;
+        var canEdit = true;
         this.state.selected.map(function(item) {
-            if (!item.canEdit) { isWritable = false; }
+            if (!item.canEdit) { canEdit = false; }
         });
 
-        if (isWritable) {
+        if (canEdit) {
             if (this.state.selected.size == 1) {
                 var edit = (
                     <span>

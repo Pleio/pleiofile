@@ -17,18 +17,62 @@ class FolderEdit extends React.Component {
         this.onCreate = this.onCreate.bind(this);
 
         this.state = {
-            title: '',
-            tags: '',
-            accessId: this.props.parent.accessId,
-            parentGuid: this.props.parent.guid
-        };
+            title: null,
+            accessId: null,
+            tags: null,
+            parentGuid: null
+        }
+    }
+
+    changeTitle(e) {
+        this.setState({
+            title: e.target.value
+        })
+    }
+
+    changeAccessId(e) {
+        this.setState({
+            accessId: e.target.value
+        })
+    }
+
+    changeTags(e) {
+        this.setState({
+            tags: e.target.value
+        })
+    }
+
+    changeParentGuid(e) {
+        this.setState({
+            parentGuid: e.target.value
+        })
+    }
+
+    componentWillReceiveProps(nextProps) {
+        let currentItem = nextProps.modal.currentItem
+        if (currentItem) {
+            this.setState({
+                title: currentItem.title,
+                accessId: currentItem.accessId,
+                tags: currentItem.tags,
+                parentGuid: nextProps.parent.guid
+            })
+        } else {
+            this.setState({
+                title: "",
+                tags: "",
+                accessId: nextProps.parent.accessId,
+                parentGuid: nextProps.parent.guid
+            })
+        }
     }
 
     render() {
-        if (this.state.guid) {
+        if (this.props.modal.currentItem) {
             var modalTitle = elgg.echo('pleiofile:edit_folder');
             var buttonValue = elgg.echo('edit');
-            var folderSelect = (<FolderSelect folderTree={this.props.folderTree} folderGuid={this.state.guid} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />);
+            var folderSelect;
+            //var folderSelect = (<FolderSelect folderTree={this.props.folderTree} folderGuid={this.state.guid} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />);
         } else {
             var modalTitle = elgg.echo('pleiofile:create_folder');
             var buttonValue = elgg.echo('create');
@@ -46,11 +90,11 @@ class FolderEdit extends React.Component {
                     </Modal.Header>
                     <Modal.Body>
                         <form onSubmit={this.onCreate}>
-                            <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} value={this.state.title} onChange={this.changeTitle} autoFocus={true} />
-                            <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
+                            <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} onChange={this.changeTitle} value={this.state.title} autoFocus={true} />
+                            <Input type="select" ref="accessId" label={elgg.echo('access')} onChange={this.changeAccessId} value={this.state.accessId}>
                                 {accessOptions}
                             </Input>
-                            <Input type="text" label={elgg.echo('tags')} name="tags" value={this.state.tags} onChange={this.changeTags} />
+                            <Input type="text" label={elgg.echo('tags')} name="tags" onChange={this.changeTags} value={this.state.tags} />
                             {folderSelect}
                             <ButtonInput type="submit" bsStyle="primary" value={buttonValue} />
                         </form>
@@ -84,12 +128,16 @@ class FolderEdit extends React.Component {
         e.preventDefault();
         this.onClose();
 
-        this.props.dispatch(createFolder({
-            title: this.state.title,
-            tags: this.state.tags,
-            accessId: this.state.accessId,
-            parentGuid: this.props.parent.guid
-        }, this.props.parent));
+        if (this.props.currentItem) {
+
+        } else {
+            this.props.dispatch(createFolder({
+                title: this.state.title,
+                tags: this.state.tags,
+                accessId: this.state.accessId,
+                parentGuid: this.props.parent.guid
+            }, this.props.parent));
+        }
     }
 }
 

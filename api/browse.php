@@ -35,8 +35,8 @@ $json = array();
 
 if ($container) {
     $json['guid'] = $container->guid;
-    $json['access_id'] = (int) $container->access_id;
-    $json['can_write'] = $container->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT) && $container->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
+    $json['accessId'] = (int) $container->access_id;
+    $json['canWrite'] = $container->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT) && $container->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
 
     if ($container instanceof ElggUser | $container instanceof ElggGroup) {
         $json['title'] = $container->name;
@@ -46,10 +46,7 @@ if ($container) {
 } else {
     $json['guid'] = 0;
     $json['accessId'] = (int) get_default_access();
-    $json['canWrite'] = array(
-        'file' => true,
-        'folder' => false
-    );
+    $json['canWrite'] = false;
 }
 
 if ($container) {

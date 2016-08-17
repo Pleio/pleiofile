@@ -21,7 +21,6 @@ class FileBrowser extends React.Component {
 
         this.newFile = this.newFile.bind(this);
         this.uploadFile = this.uploadFile.bind(this);
-        this.editFile = this.editFile.bind(this);
         this.createFolder = this.createFolder.bind(this);
         this.editFolder = this.editFolder.bind(this);
     }
@@ -127,7 +126,6 @@ class FileBrowser extends React.Component {
                     items={this.props.folder.children}
                     onComplete={this.openFolder}
                     onOpenFolder={this.openFolder}
-                    onEditFile={this.editFile}
                     onEditFolder={this.editFolder}
                 />
                 <FileUpload onComplete={this.openFolder} />
@@ -147,10 +145,6 @@ class FileBrowser extends React.Component {
 
     uploadFile() {
         this.props.dispatch(showModal('fileUpload'));
-    }
-
-    editFile(file) {
-        this.props.dispatch(showModal('fileEdit'));
     }
 
     createFolder() {
