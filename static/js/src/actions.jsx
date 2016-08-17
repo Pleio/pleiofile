@@ -1,21 +1,101 @@
-export const ADD_TODO = 'ADD_TODO'
-export const COMPLETE_TODO = 'COMPLETE_TODO'
-export const SET_VISIBILITY_FILTER = 'SET_VISIBILITY_FILTER'
+import fetch from 'isomorphic-fetch'
 
-export const VisibilityFilters = {
-  SHOW_ALL: 'SHOW_ALL',
-  SHOW_COMPLETED: 'SHOW_COMPLETED',
-  SHOW_ACTIVE: 'SHOW_ACTIVE'
+export const CREATE_FOLDER = 'CREATE_FOLDER'
+export const REQUEST_CREATE_FOLDER = 'REQUEST_CREATE_FOLDER'
+
+export const EDIT_FOLDER = 'EDIT_FOLDER'
+export const EDIT_FILE = 'EDIT_FILE'
+
+export const SHOW_MODAL = 'SHOW_MODAL'
+export const HIDE_MODAL = 'HIDE_MODAL'
+
+export const REQUEST_FOLDER = 'REQUEST_FOLDER'
+export const RECEIVE_FOLDER = 'RECEIVE_FOLDER'
+
+export const CHANGE_SORT = 'CHANGE_SORT'
+
+export function editFile() {
+    return {
+        type: EDIT_FILE
+    }
 }
 
-export function addTodo(text) {
-  return { type: ADD_TODO, text }
+export function editFolder() {
+    return {
+        type: EDIT_FOLDER
+    }
 }
 
-export function completeTodo(index) {
-  return { type: COMPLETE_TODO, index }
+export function createFolder(folder, container) {
+    return dispatch => {
+        dispatch(requestCreateFolder(folder))
+
+        let body = new FormData();
+        body.append('title', folder.title);
+        body.append('access_id', folder.accessId);
+        body.append('tags', folder.tags);
+        body.append('parent_guid', folder.parentGuid);
+
+        return fetch('/' + elgg.security.addToken('action/pleiofile/create_folder'), {
+            credentials: 'same-origin',
+            method: 'POST',
+            body
+        })
+        .then(response => dispatch(fetchFolder(folder.parentGuid)))
+    }
 }
 
-export function setVisibilityFilter(filter) {
-  return { type: SET_VISIBILITY_FILTER, filter }
+export function changeSort(sortOn, sortAscending) {
+    return {
+        type: CHANGE_SORT,
+        sortOn,
+        sortAscending
+    }
+}
+
+function requestCreateFolder(folder) {
+    return {
+        type: REQUEST_CREATE_FOLDER,
+        folder
+    }
+}
+
+export function showModal(modal) {
+    return {
+        type: SHOW_MODAL,
+        modal
+    }
+}
+
+export function hideModal(modal) {
+    return {
+        type: HIDE_MODAL,
+        modal
+    }
+}
+
+function requestFolder() {
+    return {
+        type: REQUEST_FOLDER
+    }
+}
+
+function receiveFolder(folder) {
+    return {
+        type: RECEIVE_FOLDER,
+        folder,
+        receivedAt: Date.now()
+    }
+}
+
+export function fetchFolder(guid) {
+    return dispatch => {
+        dispatch(requestFolder())
+
+        return fetch('/pleiofile/browse?containerGuid=' + guid , {
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(json => dispatch(receiveFolder(json)))
+    }
 }

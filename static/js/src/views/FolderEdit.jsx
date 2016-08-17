@@ -1,53 +1,28 @@
 import React from 'react';
 import FolderSelect from './elements/FolderSelect';
 import { Modal, Input, ButtonInput } from 'react-bootstrap';
+import { connect } from 'react-redux';
 import $jq19 from 'jquery';
+import { hideModal, createFolder } from '../actions';
 
 class FolderEdit extends React.Component {
     constructor(props) {
         super(props);
-        this.setFolder = this.setFolder.bind(this);
-        this.close = this.close.bind(this);
-        this.open = this.open.bind(this);
         this.changeTitle = this.changeTitle.bind(this);
         this.changeAccessId = this.changeAccessId.bind(this);
         this.changeTags = this.changeTags.bind(this);
         this.changeParentGuid = this.changeParentGuid.bind(this);
-        this.create = this.create.bind(this);
+
+        this.onClose = this.onClose.bind(this);
+        this.onCreate = this.onCreate.bind(this);
 
         this.state = {
-            guid: false,
-            title:'',
-            accessId: this.props.defaultAccessId,
+            title: '',
             tags: '',
-            parentGuid: this.props.parentGuid,
-            showModal: false
+            accessId: this.props.parent.accessId,
+            parentGuid: this.props.parent.guid
         };
     }
-
-    setFolder(folder) {
-        if (folder) {
-            this.setState({
-                guid: folder.guid,
-                title: folder.title,
-                accessId: folder.access_id,
-                tags: folder.tags,
-                parentGuid: this.props.parentGuid
-            });
-        } else {
-            this.setState({
-                guid: false,
-                title:'',
-                accessId: this.props.defaultAccessId,
-                tags: '',
-                parentGuid: this.props.parentGuid,
-                showModal: false
-            });
-        }
-    }
-
-    close() { this.setState({ showModal: false }); }
-    open() { this.setState({ showModal: true }); }
 
     render() {
         if (this.state.guid) {
@@ -65,12 +40,12 @@ class FolderEdit extends React.Component {
 
         return (
             <div>
-                <Modal show={this.state.showModal} onHide={this.close}>
+                <Modal show={this.props.modal.current == "folderEdit"} onHide={this.onClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>{modalTitle}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <form onSubmit={this.create}>
+                        <form onSubmit={this.onCreate}>
                             <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} value={this.state.title} onChange={this.changeTitle} autoFocus={true} />
                             <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
@@ -101,33 +76,28 @@ class FolderEdit extends React.Component {
         this.setState({parentGuid: e.target.value});
     }
 
-    create(e) {
+    onClose(e) {
+        this.props.dispatch(hideModal('folderEdit'));
+    }
+
+    onCreate(e) {
         e.preventDefault();
-        this.close();
+        this.onClose();
 
-        var data = {
-            'title': this.state.title,
-            'access_id': this.state.accessId,
-            'tags': this.state.tags,
-            'parent_guid': this.state.parentGuid
-        };
-
-        if (this.state.guid) {
-            data['guid'] = this.state.guid;
-            var url = '/' + elgg.security.addToken("action/pleiofile/update_folder");
-        } else {
-            var url = '/' + elgg.security.addToken("action/pleiofile/create_folder");
-        }
-
-        $jq19.ajax({
-            method: 'POST',
-            url: url,
-            data: data,
-            success: function(data) {
-                this.props.onComplete();
-            }.bind(this)
-        });
+        this.props.dispatch(createFolder({
+            title: this.state.title,
+            tags: this.state.tags,
+            accessId: this.state.accessId,
+            parentGuid: this.props.parent.guid
+        }, this.props.parent));
     }
 }
 
-export default FolderEdit;
+const mapStateToProps = (state, ownProps) => {
+    return {
+        modal: state.modal,
+        parent: state.folder
+    }
+}
+
+export default connect(mapStateToProps)(FolderEdit);

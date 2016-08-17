@@ -7,44 +7,31 @@ import FolderEdit from './FolderEdit';
 import FileEdit from './FileEdit';
 import FileList from './FileList';
 import $jq19 from 'jquery';
+import { connect } from 'react-redux';
+import { fetchFolder, showModal } from '../actions';
 
 class FileBrowser extends React.Component {
     constructor(props) {
         super(props);
-        this.readHash = this.readHash.bind(this);
-        this.getItems = this.getItems.bind(this);
-        this.getTree = this.getTree.bind(this);
+        //this.readHash = this.readHash.bind(this);
+        //this.getItems = this.getItems.bind(this);
+        //this.getTree = this.getTree.bind(this);
+
         this.openFolder = this.openFolder.bind(this);
-        this.sort = this.sort.bind(this);
+
         this.newFile = this.newFile.bind(this);
         this.uploadFile = this.uploadFile.bind(this);
         this.editFile = this.editFile.bind(this);
         this.createFolder = this.createFolder.bind(this);
         this.editFolder = this.editFolder.bind(this);
-
-        this.state = {
-            folderGuid: this.props.homeGuid,
-            folderTree: [],
-            breadcrumb: [],
-            items: new OrderedSet,
-            sortOn: 'title',
-            sortAscending: true,
-            accessId: null,
-            isWritable: false
-        };
     }
 
     componentDidMount() {
-        window.addEventListener('popstate', this.readHash);
-        this.readHash();
+        window.addEventListener('popstate', this.onHashChange);
+        this.onHashChange();
     }
 
-    readHash() {
-        var guid = parseInt(window.location.hash.replace("#",""));
-        this.openFolder(guid);
-    }
-
-    getItems() {
+    /*getItems() {
         this.getTree();
         $jq19.ajax({
             url: '/pleiofile/browse',
@@ -62,16 +49,17 @@ class FileBrowser extends React.Component {
             }.bind(this)
         });
     }
+    */
 
-    getTree() {
+    /*getTree() {
         $.get('/pleiofile/folder_tree?container_guid=' + this.props.homeGuid, function(result) {
             this.setState({
                 folderTree: result
             });
         }.bind(this));
-    }
+    }*/
 
-    openFolder(guid) {
+    /*openFolder(guid) {
         if (guid) {
             this.state.folderGuid = guid;
             window.location.hash = guid;
@@ -80,80 +68,34 @@ class FileBrowser extends React.Component {
             this.state.folderGuid = this.props.homeGuid;
         }
 
-        this.getItems();
+        //this.getItems();
+    }*/
+
+    onHashChange() {
+        var guid = parseInt(window.location.hash.replace("#",""));
+        this.openFolder(guid);
     }
 
-    sort(on, ascending) {
-        if (on == this.state.sortOn) {
-            var ascending = !this.state.sortAscending;
+    openFolder(guid) {
+        if (guid) {
+            this.props.dispatch(fetchFolder(guid));
+        } else if (this.props.folder.guid) {
+            this.props.dispatch(fetchFolder(this.props.folder.guid));
         } else {
-            var ascending = true;
+            this.props.dispatch(fetchFolder(this.props.homeGuid));
         }
-
-        var compare = function(a, b) {
-            // a dir is always sorted on top
-            if (a.is_dir && !b.is_dir) {
-                return -1;
-            } else if (!a.is_dir && b.is_dir) {
-                return 1;
-            }
-
-            if (a[on] !== undefined) {
-                var aCmp = a[on].toLowerCase();
-            } else {
-                var aCmp = 0;
-            }
-
-            if (b[on] !== undefined) {
-                var bCmp = b[on].toLowerCase();
-            } else {
-                var bCmp = 0;
-            }
-
-            if (aCmp < bCmp) {
-                if (ascending) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-            if (aCmp > bCmp) {
-                if (ascending) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            }
-
-            if (on !== 'title') {
-                if (a.title < b.title) {
-                    return -1;
-                }
-
-                if (a.title > b.title) {
-                    return 1;
-                }
-            }
-
-            return 0;
-        };
-
-        this.setState({
-            items: this.state.items.sort(compare),
-            sortOn: on,
-            sortAscending: ascending
-        });
     }
 
     render() {
-        var breadcrumb = this.state.breadcrumb.map(function(crumb) {
+        var breadcrumb = ""
+        /*var breadcrumb = this.state.breadcrumb.map(function(crumb) {
             return (
                 <BreadcrumbItem key={crumb.guid} guid={crumb.guid} title={crumb.title} onOpenFolder={this.openFolder} />
             );
         }.bind(this));
 
         var home = ( <BreadcrumbItem key="0" path={this.props.home} title="Home" onOpenFolder={this.openFolder} /> );
-        breadcrumb.unshift(home);
+        breadcrumb.unshift(home); */
 
         if (_appData['odt_enabled']) {
             var create_odt = (
@@ -161,16 +103,16 @@ class FileBrowser extends React.Component {
             )
         }
 
-        if (this.state.isWritable) {
-            var add = (
-                <div className="pleiofile-btn-group">
-                    <DropdownButton id="new" title={elgg.echo('add')} pullRight={true}>
-                        {create_odt}
-                        <MenuItem onClick={this.uploadFile}>{elgg.echo('pleiofile:upload_file')}</MenuItem>
-                        <MenuItem onClick={this.createFolder}>{elgg.echo('pleiofile:create_folder')}</MenuItem>
-                    </DropdownButton>
-                </div>
-            );
+        if (this.props.folder.can_write) {
+                var add = (
+                    <div className="pleiofile-btn-group">
+                        <DropdownButton id="new" title={elgg.echo('add')} pullRight={true}>
+                            {create_odt}
+                            <MenuItem onClick={this.uploadFile}>{elgg.echo('pleiofile:upload_file')}</MenuItem>
+                            <MenuItem onClick={this.createFolder}>{elgg.echo('pleiofile:create_folder')}</MenuItem>
+                        </DropdownButton>
+                    </div>
+                );
         }
 
         return (
@@ -181,44 +123,49 @@ class FileBrowser extends React.Component {
                     </Breadcrumb>
                 </div>
                 {add}
-                <FileList items={this.state.items} onComplete={this.getItems} onOpenFolder={this.openFolder} onEditFile={this.editFile} onEditFolder={this.editFolder} onSort={this.sort} sortOn={this.state.sortOn} sortAscending={this.state.sortAscending} />
-                <FileUpload ref="fileUpload" folderGuid={this.state.folderGuid} onComplete={this.getItems} />
-                <FolderEdit ref="folderEdit" folderTree={this.state.folderTree} parentGuid={this.state.folderGuid} onComplete={this.getItems} folder={this.state.editFolder} defaultAccessId={this.state.accessId} />
-                <FileEdit ref="fileEdit" folderTree={this.state.folderTree} parentGuid={this.state.folderGuid} onComplete={this.getItems} file={this.state.editFile} />
+                <FileList
+                    items={this.props.folder.children}
+                    onComplete={this.openFolder}
+                    onOpenFolder={this.openFolder}
+                    onEditFile={this.editFile}
+                    onEditFolder={this.editFolder}
+                />
+                <FileUpload onComplete={this.openFolder} />
+                <FolderEdit onComplete={this.openFolder} />
+                <FileEdit onComplete={this.openFolder} />
             </div>
         );
     }
 
     newFile() {
         var location = '/odt_editor/create/' + this.props.homeGuid;
-        if (this.props.homeGuid !== this.state.folderGuid) {
-            location += '?folder_guid=' + this.state.folderGuid;
+        if (this.props.folder.guid !== this.props.homeGuid) {
+            location += '?folder_guid=' + this.props.folder.guid;
         }
         window.location = location;
     }
 
     uploadFile() {
-        this.refs['fileUpload'].setAccessId(this.state.accessId);
-        this.refs['fileUpload'].open();
+        this.props.dispatch(showModal('fileUpload'));
     }
 
     editFile(file) {
-        this.refs['fileEdit'].setFile(file);
-        this.refs['fileEdit'].open();
+        this.props.dispatch(showModal('fileEdit'));
     }
 
     createFolder() {
-        this.refs['folderEdit'].setFolder({
-            title: '',
-            access_id: this.state.accessId
-        });
-        this.refs['folderEdit'].open();
+        this.props.dispatch(showModal('folderEdit'));
     }
 
     editFolder(folder) {
-        this.refs['folderEdit'].setFolder(folder);
-        this.refs['folderEdit'].open();
+        this.props.dispatch(showModal('folderEdit'));
     }
 }
 
-export default FileBrowser;
+const mapStateToProps = (state, ownProps) => {
+    return {
+        folder: state.folder
+    }
+}
+
+export default connect(mapStateToProps)(FileBrowser);

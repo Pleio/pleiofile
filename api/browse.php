@@ -1,7 +1,9 @@
 <?php
+
 $dbprefix = elgg_get_config('dbprefix');
 
-$container_guid = (int) get_input('container_guid');
+$container_guid = (int) get_input('containerGuid');
+$user = elgg_get_logged_in_user_entity();
 
 $limit = (int) get_input('limit', 20);
 $offset = (int) get_input('offset', 0);
@@ -14,7 +16,7 @@ if ($offset < 0) {
     $offset = 0;
 }
 
-$order_by = get_input('order_by', 'title');
+$order_by = get_input('orderBy', 'title');
 $direction = get_input('direction', 'asc');
 
 if (!in_array($order_by, array('title', 'time_created', 'time_updated', 'access_id'))) {
@@ -34,10 +36,7 @@ $json = array();
 if ($container) {
     $json['guid'] = $container->guid;
     $json['access_id'] = (int) $container->access_id;
-    $json['can_write'] = array(
-        'file' => $container->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT),
-        'folder' => $container->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT)
-    );
+    $json['can_write'] = $container->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT) && $container->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
 
     if ($container instanceof ElggUser | $container instanceof ElggGroup) {
         $json['title'] = $container->name;
@@ -46,8 +45,8 @@ if ($container) {
     }
 } else {
     $json['guid'] = 0;
-    $json['access_id'] = (int) get_default_access();
-    $json['can_write'] = array(
+    $json['accessId'] = (int) get_default_access();
+    $json['canWrite'] = array(
         'file' => true,
         'folder' => false
     );
@@ -108,19 +107,19 @@ if ($container) {
     $entities = elgg_get_entities($options);
 }
 
-$json['entities'] = array();
+$json['children'] = array();
 foreach ($entities as $entity) {
-    $json['entities'][] = array(
+    $json['children'][] = array(
         'guid' => $entity->guid,
         'subtype' => $entity->getSubtype(),
         'title' => htmlspecialchars_decode($entity->title, ENT_QUOTES),
-        'access_id' => (int) $entity->access_id,
-        'can_edit' => $entity->canEdit(),
-        'created_by_guid' => $entity->getOwnerEntity()->guid,
-        'created_by_name' => $entity->getOwnerEntity()->name,
+        'accessId' => (int) $entity->access_id,
+        'canEdit' => $entity->canEdit(),
+        'createdByGuid' => $entity->getOwnerEntity()->guid,
+        'createdByName' => $entity->getOwnerEntity()->name,
         'tags' => $entity->tags ? $entity->tags : array(),
-        'time_created' => date('c', $entity->time_created),
-        'time_updated' => date('c', $entity->time_updated),
+        'timeCreated' => date('c', $entity->time_created),
+        'timeUpdated' => date('c', $entity->time_updated),
         'url' => $entity->getURL()
     );
 }

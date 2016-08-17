@@ -2,6 +2,8 @@ import React from 'react';
 import { OrderedSet } from 'immutable';
 import Item from './Item';
 import $jq19 from 'jquery';
+import { connect } from 'react-redux';
+import { changeSort } from '../actions';
 
 class FileList extends React.Component {
     constructor(props) {
@@ -11,7 +13,7 @@ class FileList extends React.Component {
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseOver = this.onMouseOver.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
-        this.sort = this.sort.bind(this);
+        this.onSort = this.onSort.bind(this);
         this.view = this.view.bind(this);
         this.download = this.download.bind(this);
         this.bulkDownload = this.bulkDownload.bind(this);
@@ -58,7 +60,8 @@ class FileList extends React.Component {
         }
 
         if (nextState.selecting) {
-            var seq = this.props.items.toIndexedSeq();
+            var seq = new OrderedSet(this.props.items).toIndexedSeq();
+            console.log(new OrderedSet(this.props.items));
             var beginIndex = seq.findIndex(v => v == nextState.selectBegin);
             var endIndex = seq.findIndex(v => v == nextState.selectEnd);
 
@@ -111,8 +114,12 @@ class FileList extends React.Component {
         }
     }
 
-    sort(on) {
-        this.props.onSort(on);
+    onSort(on) {
+        if (on === this.props.folder.sortOn) {
+            this.props.dispatch(changeSort(on, !this.props.folder.sortAscending));
+        } else {
+            this.props.dispatch(changeSort(on, true));
+        }
     }
 
     view() {
@@ -124,8 +131,8 @@ class FileList extends React.Component {
     }
 
     bulkDownload() {
-        var selectedFiles = $.map(this.state.selected.filter(v => v.is_dir === false).toArray(), function(o) { return o.guid });
-        var selectedFolders = $.map(this.state.selected.filter(v => v.is_dir === true).toArray(), function(o) { return o.guid });
+        var selectedFiles = $.map(this.state.selected.filter(v => v.subtype === "file").toArray(), function(o) { return o.guid });
+        var selectedFolders = $.map(this.state.selected.filter(v => v.subtype === "folder").toArray(), function(o) { return o.guid });
 
         window.location = '/pleiofile/bulk_download?' + $.param({
             file_guids: selectedFiles,
@@ -139,7 +146,7 @@ class FileList extends React.Component {
         }
 
         var selectedItem = this.state.selected.first();
-        if (selectedItem['is_dir']) {
+        if (selectedItem['subtype'] == "folder") {
             this.props.onEditFolder(selectedItem);
         } else {
             this.props.onEditFile(selectedItem);
@@ -183,7 +190,7 @@ class FileList extends React.Component {
         }.bind(this));
 
         if (this.state.selected.size == 1) {
-            if (this.state.selected.first().is_dir) {
+            if (this.state.selected.first().subtype === "folder") {
                 var download = (
                     <span>
                         <span className="glyphicon glyphicon-download-alt"></span>&nbsp;
@@ -222,7 +229,7 @@ class FileList extends React.Component {
 
         var isWritable = true;
         this.state.selected.map(function(item) {
-            if (!item.is_writable) { isWritable = false; }
+            if (!item.canEdit) { isWritable = false; }
         });
 
         if (isWritable) {
@@ -248,14 +255,14 @@ class FileList extends React.Component {
         if (this.state.selected.size === 0) {
             var columns = {
                 'title': elgg.echo('pleiofile:name'),
-                'time_updated': elgg.echo('pleiofile:modified_at'),
-                'created_by': elgg.echo('pleiofile:created_by'),
-                'access_id': elgg.echo('pleiofile:shared_with')
+                'timeUpdated': elgg.echo('pleiofile:modified_at'),
+                'createdBy': elgg.echo('pleiofile:created_by'),
+                'accessId': elgg.echo('pleiofile:shared_with')
             };
 
             var header = $jq19.map(columns, function(value, key) {
-                if (this.props.sortOn === key) {
-                    if (this.props.sortAscending) {
+                if (this.props.folder.sortOn === key) {
+                    if (this.props.folder.sortAscending) {
                         var glyphicon = "glyphicon-chevron-down";
                     } else {
                         var glyphicon = "glyphicon-chevron-up";
@@ -266,7 +273,7 @@ class FileList extends React.Component {
 
                 return (
                     <th key={key}>
-                        <a href="javascript:void(0);" onClick={this.sort.bind(this, key)}>{value}</a>&nbsp;
+                        <a href="javascript:void(0);" onClick={this.onSort.bind(this, key)}>{value}</a>&nbsp;
                         <span className={"glyphicon " + glyphicon}></span>
                     </th>
                 );
@@ -302,4 +309,10 @@ class FileList extends React.Component {
     }
 }
 
-export default FileList;
+const mapStateToProps = (state, ownProps) => {
+    return {
+        folder: state.folder
+    }
+}
+
+export default connect(mapStateToProps)(FileList);

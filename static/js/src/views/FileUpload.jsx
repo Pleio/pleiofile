@@ -1,17 +1,19 @@
 import React from 'react';
 import { Modal, Input, ButtonInput } from 'react-bootstrap';
+import { connect } from 'react-redux';
 import $jq19 from 'jquery';
+import { hideModal } from '../actions';
 
 class FileUpload extends React.Component {
     constructor(props) {
         super(props);
-        this.close = this.close.bind(this);
-        this.open = this.open.bind(this);
+
+        this.onClose = this.onClose.bind(this);
+        this.onUpload = this.onUpload.bind(this);
+
         this.setAccessId = this.setAccessId.bind(this);
-        this.clickCloseButton = this.clickCloseButton.bind(this);
         this.changeFiles = this.changeFiles.bind(this);
         this.changeAccessId = this.changeAccessId.bind(this);
-        this.upload = this.upload.bind(this);
 
         this.state = {
             showModal: false,
@@ -21,20 +23,6 @@ class FileUpload extends React.Component {
             failed: new Set(),
             accessId: null
         }
-    }
-
-    close() {
-        this.setState({ showModal: false });
-    }
-
-    open() {
-        this.setState({
-            showModal: true,
-            uploading: 'waiting_for_input',
-            files: [],
-            succeeded: new Set(),
-            failed: new Set()
-        });
     }
 
     setAccessId(accessId) {
@@ -77,7 +65,7 @@ class FileUpload extends React.Component {
 
         return (
             <div>
-                <Modal show={this.state.showModal} onHide={this.close}>
+                <Modal show={this.props.modal.current === "fileUpload"} onHide={this.onClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>{elgg.echo('pleiofile:upload_file')}</Modal.Title>
                     </Modal.Header>
@@ -102,11 +90,6 @@ class FileUpload extends React.Component {
         )
     }
 
-    clickCloseButton(e) {
-        e.preventDefault();
-        this.close();
-    }
-
     changeFiles(e) {
         this.setState({
             files: e.target.files,
@@ -119,7 +102,11 @@ class FileUpload extends React.Component {
         this.setState({accessId: e.target.value});
     }
 
-    upload(e) {
+    onClose(e) {
+        this.props.dispatch(hideModal('fileUpload'));
+    }
+
+    onUpload(e) {
         e.preventDefault();
 
         this.setState({
@@ -164,4 +151,11 @@ class FileUpload extends React.Component {
     }
 }
 
-export default FileUpload;
+const mapStateToProps = (state, ownProps) => {
+    return {
+        modal: state.modal,
+        parent: state.folder
+    }
+}
+
+export default connect(mapStateToProps)(FileUpload);

@@ -27,9 +27,9 @@ class Item extends React.Component {
 
     render() {
         var cssClass = this.props.selected ? 'active' : '';
-        var sharedWith = _appData['accessIds'][this.props.item['access_id']];
+        var sharedWith = _appData['accessIds'][this.props.item['accessId']];
 
-        if (this.props.item['is_dir']) {
+        if (this.props.item['subtype'] === "folder") {
             return (
                 <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
                     <td>
@@ -39,12 +39,12 @@ class Item extends React.Component {
                         </a>
                     </td>
                     <td>-</td>
-                    <td>{this.props.item.created_by}</td>
+                    <td>{this.props.item.createdByName}</td>
                     <td>{sharedWith}</td>
                 </tr>
             );
         } else {
-            var modified_at = moment(this.props.item['time_updated']).format("DD-MM-YY HH:mm");
+            let modifiedAt = moment(this.props.item['timeUpdated']).format("DD-MM-YY HH:mm");
 
             return (
                 <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
@@ -54,8 +54,8 @@ class Item extends React.Component {
                             {this.props.item.title}
                         </a>
                     </td>
-                    <td>{modified_at}</td>
-                    <td>{this.props.item.created_by}</td>
+                    <td>{modifiedAt}</td>
+                    <td>{this.props.item.createdBy}</td>
                     <td>{sharedWith}</td>
                 </tr>
             );

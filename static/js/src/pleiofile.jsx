@@ -1,10 +1,16 @@
 import FileBrowser from './views/FileBrowser';
-import { createStore } from 'redux';
+import { createStore, applyMiddleware } from 'redux';
+import thunkMiddleware from 'redux-thunk'
+import createLogger from 'redux-logger';
 import { Provider } from 'react-redux';
-import pleioFile from './reducers';
+import rootReducer from './reducers';
 import React from 'react';
 
-let store = createStore(pleioFile);
+const loggerMiddleware = createLogger();
+let store = createStore(rootReducer, {}, applyMiddleware(
+    thunkMiddleware,
+    loggerMiddleware
+));
 
 var ReactDOM = require('react-dom');
 ReactDOM.render(
