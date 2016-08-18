@@ -86,15 +86,14 @@ class FileBrowser extends React.Component {
     }
 
     render() {
-        var breadcrumb = ""
-        /*var breadcrumb = this.state.breadcrumb.map(function(crumb) {
+        var breadcrumb = this.props.folder.breadcrumb.map(function(crumb) {
             return (
                 <BreadcrumbItem key={crumb.guid} guid={crumb.guid} title={crumb.title} onOpenFolder={this.openFolder} />
-            );
+            )
         }.bind(this));
 
-        var home = ( <BreadcrumbItem key="0" path={this.props.home} title="Home" onOpenFolder={this.openFolder} /> );
-        breadcrumb.unshift(home); */
+        var home = ( <BreadcrumbItem key={this.props.homeGuid} guid={this.props.homeGuid} title="Home" onOpenFolder={this.openFolder} /> );
+        breadcrumb.unshift(home);
 
         if (_appData['odt_enabled']) {
             var create_odt = (
@@ -102,7 +101,7 @@ class FileBrowser extends React.Component {
             )
         }
 
-        if (this.props.folder.can_write) {
+        if (this.props.folder.canWrite) {
                 var add = (
                     <div className="pleiofile-btn-group">
                         <DropdownButton id="new" title={elgg.echo('add')} pullRight={true}>

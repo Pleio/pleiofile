@@ -26,6 +26,7 @@ function modal(state = {
 function folder(state = {
     isFetching: false,
     title: "",
+    breadcrumb: [],
     children: new OrderedSet,
     sortOn: "title",
     sortAscending: true,

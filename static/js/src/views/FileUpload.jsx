@@ -77,9 +77,9 @@ class FileUpload extends React.Component {
                             </tbody>
                         </table>
                         </div>
-                        <form onSubmit={this.upload}>
+                        <form onSubmit={this.onUpload}>
                             <Input type="file" multiple label={elgg.echo('pleiofile:files')} name="files" onChange={this.changeFiles} />
-                            <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
+                            <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.props.parent.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
                             {uploadButton}
@@ -120,7 +120,7 @@ class FileUpload extends React.Component {
             var file = this.state.files[i];
             data.append('file', file);
             data.append('access_id', this.state.accessId);
-            data.append('parent_guid', this.props.folderGuid);
+            data.append('parent_guid', this.props.parent.guid);
 
             var options = {
                 url: '/' + elgg.security.addToken("action/pleiofile/upload"),

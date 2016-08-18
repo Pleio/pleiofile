@@ -35,19 +35,42 @@ $json = array();
 
 if ($container) {
     $json['guid'] = $container->guid;
-    $json['accessId'] = (int) $container->access_id;
     $json['canWrite'] = $container->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT) && $container->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
 
     if ($container instanceof ElggUser | $container instanceof ElggGroup) {
         $json['title'] = $container->name;
+        $json['accessId'] = get_default_access();
     } else {
         $json['title'] = $container->title;
+        $json['accessId'] = (int) $container->access_id;
     }
 } else {
     $json['guid'] = 0;
     $json['accessId'] = (int) get_default_access();
     $json['canWrite'] = false;
 }
+
+$breadcrumb = array();
+if ($container instanceof ElggObject) {
+    $breadcrumb[] = array(
+        'guid' => $container->guid,
+        'title' => $container->title
+    );
+
+    $parent_guid = $container->parent_guid;
+    while ($parent_guid !== 0 && $loops < 15) {
+        $parent = get_entity($parent_guid);
+        $breadcrumb[] = array(
+            'guid' => $parent->guid,
+            'title' => $parent->title
+        );
+
+        $parent_guid = $parent->parent_guid;
+        $loops++;
+    }
+}
+
+$json['breadcrumb'] = array_reverse($breadcrumb);
 
 if ($container) {
     $file_options = array(
@@ -72,12 +95,12 @@ if ($container) {
     } else {
         // we are in a subfolder
         $file_options['container_guid'] = $container->container_guid;
-        $file_options['relationship'] = FILE_TOOLS_RELATIONSHIP;
-        $file_options['relationship_guid'] = $container_guid;
+        $file_options['relationship'] = "folder_of";
+        $file_options['relationship_guid'] = $container->guid;
         $folder_options['container_guid'] = $container->container_guid;
         $folder_options['metadata_name_value_pairs'] = array(array(
                 'name' => 'parent_guid',
-                'value' => $container_guid
+                'value' => $container->guid
         ));
     }
 

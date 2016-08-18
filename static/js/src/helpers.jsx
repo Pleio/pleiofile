@@ -1,9 +1,9 @@
 export function sortItems(items, sortOn, sortAscending) {
     var compare = function(a, b) {
         // a dir is always sorted on top
-        if (a.subtype == "folder" && !b.subtype == "folder") {
+        if (a.subtype == "folder" && b.subtype != "folder") {
             return -1;
-        } else if (!a.subtype == "folder" && b.subtype == "folder") {
+        } else if (a.subtype != "folder" && b.subtype == "folder") {
             return 1;
         }
 
