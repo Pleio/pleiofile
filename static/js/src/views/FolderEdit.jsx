@@ -3,13 +3,14 @@ import FolderSelect from './elements/FolderSelect';
 import { Modal, Input, ButtonInput } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import $jq19 from 'jquery';
-import { hideModal, createFolder } from '../actions';
+import { hideModal, createFolder, editFolder } from '../actions';
 
 class FolderEdit extends React.Component {
     constructor(props) {
         super(props);
         this.changeTitle = this.changeTitle.bind(this);
         this.changeAccessId = this.changeAccessId.bind(this);
+        this.changeWriteAccessId = this.changeWriteAccessId.bind(this);
         this.changeTags = this.changeTags.bind(this);
         this.changeParentGuid = this.changeParentGuid.bind(this);
 
@@ -17,51 +18,34 @@ class FolderEdit extends React.Component {
         this.onCreate = this.onCreate.bind(this);
 
         this.state = {
+            guid: null,
             title: null,
             accessId: null,
+            writeAccessId: null,
             tags: null,
             parentGuid: null
         }
     }
 
-    changeTitle(e) {
-        this.setState({
-            title: e.target.value
-        })
-    }
-
-    changeAccessId(e) {
-        this.setState({
-            accessId: e.target.value
-        })
-    }
-
-    changeTags(e) {
-        this.setState({
-            tags: e.target.value
-        })
-    }
-
-    changeParentGuid(e) {
-        this.setState({
-            parentGuid: e.target.value
-        })
-    }
-
     componentWillReceiveProps(nextProps) {
         let currentItem = nextProps.modal.currentItem
+        console.log(currentItem)
         if (currentItem) {
             this.setState({
+                guid: currentItem.guid,
                 title: currentItem.title,
                 accessId: currentItem.accessId,
+                writeAccessId: currentItem.writeAccessId,
                 tags: currentItem.tags,
                 parentGuid: nextProps.parent.guid
             })
         } else {
             this.setState({
+                guid: null,
                 title: "",
                 tags: "",
                 accessId: nextProps.parent.accessId,
+                writeAccessId: nextProps.parent.writeAccessId,
                 parentGuid: nextProps.parent.guid
             })
         }
@@ -91,7 +75,10 @@ class FolderEdit extends React.Component {
                     <Modal.Body>
                         <form onSubmit={this.onCreate}>
                             <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} onChange={this.changeTitle} value={this.state.title} autoFocus={true} />
-                            <Input type="select" ref="accessId" label={elgg.echo('access')} onChange={this.changeAccessId} value={this.state.accessId}>
+                            <Input type="select" ref="accessId" label={elgg.echo('access:read')} onChange={this.changeAccessId} value={this.state.accessId}>
+                                {accessOptions}
+                            </Input>
+                            <Input type="select" ref="writeAccessId" label={elgg.echo('access:write')} onChange={this.changeWriteAccessId} value={this.state.writeAccessId}>
                                 {accessOptions}
                             </Input>
                             <Input type="text" label={elgg.echo('tags')} name="tags" onChange={this.changeTags} value={this.state.tags} />
@@ -112,6 +99,12 @@ class FolderEdit extends React.Component {
         this.setState({accessId: e.target.value});
     }
 
+    changeWriteAccessId(e) {
+        this.setState({
+            writeAccessId: e.target.value
+        })
+    }
+
     changeTags(e) {
         this.setState({tags: e.target.value});
     }
@@ -128,13 +121,21 @@ class FolderEdit extends React.Component {
         e.preventDefault();
         this.onClose();
 
-        if (this.props.currentItem) {
-
+        if (this.state.guid) {
+            this.props.dispatch(editFolder({
+                guid: this.state.guid,
+                title: this.state.title,
+                tags: this.state.tags,
+                accessId: this.state.accessId,
+                writeAccessId: this.state.writeAccessId,
+                parentGuid: this.props.parent.guid
+            }, this.props.parent));
         } else {
             this.props.dispatch(createFolder({
                 title: this.state.title,
                 tags: this.state.tags,
                 accessId: this.state.accessId,
+                writeAccessId: this.state.writeAccessId,
                 parentGuid: this.props.parent.guid
             }, this.props.parent));
         }

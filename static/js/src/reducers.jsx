@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-import { CHANGE_SORT, SHOW_MODAL, HIDE_MODAL, CREATE_FOLDER, EDIT_FOLDER, UPLOAD_FILE, EDIT_FILE, REQUEST_FOLDER, RECEIVE_FOLDER } from './actions'
+import { SHOW_MODAL, HIDE_MODAL, CHANGE_SORT, REQUEST_FOLDER, RECEIVE_FOLDER } from './actions'
 import { OrderedSet } from 'immutable';
 import { sortItems } from './helpers';
 
@@ -30,7 +30,8 @@ function folder(state = {
     children: new OrderedSet,
     sortOn: "title",
     sortAscending: true,
-    accessId: 0
+    accessId: 0,
+    writeAccessId: 0
 }, action) {
     switch (action.type) {
         case CHANGE_SORT:

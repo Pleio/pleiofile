@@ -40,13 +40,16 @@ if ($container) {
     if ($container instanceof ElggUser | $container instanceof ElggGroup) {
         $json['title'] = $container->name;
         $json['accessId'] = get_default_access();
+        $json['writeAccessId'] = ACCESS_PRIVATE;
     } else {
         $json['title'] = $container->title;
         $json['accessId'] = (int) $container->access_id;
+        $json['writeAccessId'] = $container->write_access_id ? $container->write_access_id : ACCESS_PRIVATE;
     }
 } else {
     $json['guid'] = 0;
     $json['accessId'] = (int) get_default_access();
+    $json['writeAccessId'] = ACCESS_PRIVATE;
     $json['canWrite'] = false;
 }
 
@@ -134,6 +137,7 @@ foreach ($entities as $entity) {
         'subtype' => $entity->getSubtype(),
         'title' => htmlspecialchars_decode($entity->title, ENT_QUOTES),
         'accessId' => (int) $entity->access_id,
+        'writeAccessId' => (int) ($entity->write_access_id) ? $entity->write_access_id : ACCESS_PRIVATE,
         'canEdit' => $entity->canEdit(),
         'createdByGuid' => $entity->getOwnerEntity()->guid,
         'createdByName' => $entity->getOwnerEntity()->name,

@@ -26,6 +26,7 @@ try {
         'filename' => $_FILES['file']['name'],
         'stream' => file_get_contents($_FILES['file']['tmp_name']),
         'access_id' => get_input('access_id'),
+        'write_access_id' => get_input('write_access_id'),
         'type' => $_FILES['upload']['type']
     ));
 } catch (Exception $e) {

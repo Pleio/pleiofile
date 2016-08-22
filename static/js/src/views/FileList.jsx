@@ -203,12 +203,14 @@ class FileList extends React.Component {
                             <a href="javascript:void(0);" onClick={this.download}>{elgg.echo('pleiofile:download')}</a>&nbsp;&nbsp;&nbsp;&nbsp;
                     </span>
                 );
-                var view = (
-                    <span>
-                        <span className="glyphicon glyphicon-eye-open"></span>&nbsp;
-                            <a href="javascript:void(0);" onClick={this.view}>{elgg.echo('pleiofile:view')}</a>&nbsp;&nbsp;&nbsp;&nbsp;
-                    </span>
-                );
+                if (!_appData['isWidget']) {
+                    var view = (
+                        <span>
+                            <span className="glyphicon glyphicon-eye-open"></span>&nbsp;
+                                <a href="javascript:void(0);" onClick={this.view}>{elgg.echo('pleiofile:view')}</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                        </span>
+                    );
+                }
             }
         } else {
             var download = (
@@ -252,12 +254,19 @@ class FileList extends React.Component {
         }
 
         if (this.state.selected.size === 0) {
-            var columns = {
-                'title': elgg.echo('pleiofile:name'),
-                'timeUpdated': elgg.echo('pleiofile:modified_at'),
-                'createdBy': elgg.echo('pleiofile:created_by'),
-                'accessId': elgg.echo('pleiofile:shared_with')
-            };
+            if (!_appData['isWidget']) {
+                var columns = {
+                    'title': elgg.echo('pleiofile:name'),
+                    'timeUpdated': elgg.echo('pleiofile:modified_at'),
+                    'accessId': elgg.echo('pleiofile:shared_with'),
+                    'writeAccessId': elgg.echo('pleiofile:write_access')
+                };
+            } else {
+                var columns = {
+                    'title': elgg.echo('pleiofile:name'),
+                    'timeUpdated': elgg.echo('pleiofile:modified_at')
+                };
+            }
 
             var header = $jq19.map(columns, function(value, key) {
                 if (this.props.folder.sortOn === key) {
@@ -284,13 +293,22 @@ class FileList extends React.Component {
                 var message = elgg.echo('pleiofile:items_selected');
             }
 
-            var header = (
-                <th colSpan="4">
-                    {this.state.selected.size} {message}&nbsp;&nbsp;
-                    {view}
-                    {edit}
-                </th>
-            );
+            if (_appData['isWidget']) {
+                var header = (
+                    <th colSpan="4">
+                        {view}
+                        {edit}
+                    </th>
+                );
+            } else {
+                var header = (
+                    <th colSpan="4">
+                        {this.state.selected.size} {message}&nbsp;&nbsp;
+                        {view}
+                        {edit}
+                    </th>
+                );
+            }
         }
 
         return (

@@ -140,12 +140,22 @@ class PleioFileBrowser {
             }
         }
 
+        $folder->write_access_id = $params['write_access_id'];
+        if (!$folder->write_access_id) {
+            $folder->write_access_id = ACCESS_PRIVATE;
+        }
+
         return $folder->save();
     }
 
     public function updateFolder($folder, $params = array()) {
         $folder->title = $params['title'];
         $folder->access_id = $params['access_id'];
+        $folder->write_access_id = $params['write_access_id'];
+        if (!$folder->write_access_id) {
+            $folder->write_access_id = ACCESS_PRIVATE;
+        }
+
         $folder->tags = $params['tags'];
 
         if ($params['parent_guid'] && $folder->parent_guid !== $folder->guid) {
@@ -197,6 +207,11 @@ class PleioFileBrowser {
         $file = new FilePluginFile();
         $file->title = $params['filename'];
         $file->access_id = $access_id;
+        $file->write_access_id = $params['write_access_id'];
+        if (!$file->write_access_id) {
+            $file->write_access_id = ACCESS_PRIVATE;
+        }
+
         $file->container_guid = $container->guid;
 
         $filestorename = elgg_strtolower(time() . $params['filename']);
@@ -247,6 +262,11 @@ class PleioFileBrowser {
 
         $file->title = $params['title'];
         $file->access_id = $params['access_id'];
+        $file->write_access_id = $params['write_access_id'];
+        if (!$file->write_access_id) {
+            $file->write_access_id = ACCESS_PRIVATE;
+        }
+
         $file->tags = $params['tags'];
         $result = $file->save();
 

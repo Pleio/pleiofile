@@ -1,10 +1,16 @@
 <?php
+elgg_load_css('pleiofile');
+elgg_load_js('pleiofile');
 
 $widget = elgg_extract("entity", $vars);
+$container = $widget->getContainerEntity();
 
-$browser = new PleioFileBrowser();
+$data = array(
+    'containerGuid' => $container->guid,
+    'accessIds' => get_write_access_array(),
+    'isWidget' => true,
+    'odt_enabled' => elgg_is_active_plugin('odt_editor') ? true : false
+);
 
-$entities = $browser->getFolderContents($widget->getOwnerEntity());
-echo elgg_view_entity_list($entities, array(
-    'full_view' => false
-));
+echo "<script> var _appData = " . json_encode($data) . "; </script>";
+echo "<div id=\"pleiofile\"></div>";

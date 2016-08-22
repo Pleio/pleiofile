@@ -2,13 +2,13 @@
 gatekeeper();
 
 $guid = get_input('guid');
-$file = get_entity($guid);
-if (!$file) {
+$folder = get_entity($guid);
+if (!$folder) {
     http_response_code(404);
     exit();
 }
 
-if (!$file->canEdit()) {
+if (!$folder->canEdit()) {
     http_response_code(403);
     exit();
 }
@@ -16,11 +16,12 @@ if (!$file->canEdit()) {
 $browser = new PleioFileBrowser();
 
 try {
-    $browser->updateFile($file, array(
+    $browser->updateFolder($folder, array(
         'title' => get_input('title'),
-        'access_id' => (int) get_input('access_id'),
         'tags' => string_to_tag_array(get_input('tags')),
-        'parent_guid' => (int) get_input('parent_guid')
+        'parent_guid' => get_input('parent_guid'),
+        'access_id' => (int) get_input('access_id'),
+        'write_access_id' => (int) get_input('write_access_id')
     ));
 } catch (Exception $e) {
     http_response_code(500);

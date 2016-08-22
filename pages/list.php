@@ -33,10 +33,15 @@ if ($page_owner instanceof ElggGroup) {
 $data = array(
     'containerGuid' => $containerGuid,
     'accessIds' => get_write_access_array(),
+    'isWidget' => false,
     'odt_enabled' => elgg_is_active_plugin('odt_editor') ? true : false
 );
 
 $params['content'] = "<script> var _appData = " . json_encode($data) . "; </script>";
 $params['content'] .= "<div id=\"pleiofile\"></div>";
+
+if ($page_owner instanceof ElggGroup && elgg_is_active_plugin('search')) {
+    $params['sidebar'] = elgg_view('groups/sidebar/search', array('entity' => $page_owner));
+}
 
 echo elgg_view_page($title_text, elgg_view_layout("content", $params));

@@ -21,13 +21,12 @@ function pleiofile_init() {
 
     $base = dirname(__FILE__) . "/actions/";
     elgg_register_action("pleiofile/create_folder", $base . "create_folder.php");
-    elgg_register_action("pleiofile/update_folder", $base . "update_folder.php");
+    elgg_register_action("pleiofile/edit_folder", $base . "edit_folder.php");
     elgg_register_action("pleiofile/delete", $base . "delete.php");
     elgg_register_action("pleiofile/upload", $base . "upload.php");
-    elgg_register_action("pleiofile/update_file", $base . "update_file.php");
+    elgg_register_action("pleiofile/edit_file", $base . "edit_file.php");
 
     add_group_tool_option("pleiofile_management_can_add", elgg_echo("pleiofile:file_management:can_add"));
-    add_group_tool_option("pleiofile_management_can_edit", elgg_echo("pleiofile:file_management:can_edit"), false);
 
     elgg_register_plugin_hook_handler("route", "file", "pleiofile_file_route_hook");
 

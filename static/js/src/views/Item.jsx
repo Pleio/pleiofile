@@ -1,6 +1,8 @@
 import React from 'react';
 import moment from 'moment';
 
+let clickOnLink = false;
+
 class Item extends React.Component {
     constructor(props) {
         super(props);
@@ -14,51 +16,93 @@ class Item extends React.Component {
         this.props.onOpenFolder(this.props.item.guid);
     }
 
-    onMouseDown(e) {
-        this.props.onMouseDown(e, this.props.item);
+    onLinkMouseDown(e) {
+        clickOnLink = true;
     }
+
+    onMouseDown(e) {
+        if (!clickOnLink) {
+            this.props.onMouseDown(e, this.props.item);
+        }
+    }
+
     onMouseOver(e) {
         this.props.onMouseOver(e, this.props.item);
     }
 
     onMouseUp(e) {
+        clickOnLink = false;
         this.props.onMouseUp(e, this.props.item);
     }
 
     render() {
         var cssClass = this.props.selected ? 'active' : '';
-        var sharedWith = _appData['accessIds'][this.props.item['accessId']];
+        var readAccess = _appData['accessIds'][this.props.item['accessId']];
+
+        if (this.props.item['writeAccessId'] === 0) {
+            var writeAccess = this.props.item.createdByName;
+        } else {
+            var writeAccess = _appData['accessIds'][this.props.item['writeAccessId']];
+        }
 
         if (this.props.item['subtype'] === "folder") {
-            return (
-                <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
-                    <td>
-                        <a href="javascript:void(0);" onClick={this.openFolder}>
-                            <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
-                            {this.props.item.title}
-                        </a>
-                    </td>
-                    <td>-</td>
-                    <td>{this.props.item.createdByName}</td>
-                    <td>{sharedWith}</td>
-                </tr>
-            );
+            if (!_appData['isWidget']) {
+                return (
+                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                        <td>
+                            <a href="javascript:void(0);" onMouseDown={this.onLinkMouseDown} onClick={this.openFolder}>
+                                <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
+                                {this.props.item.title}
+                            </a>
+                        </td>
+                        <td>-</td>
+                        <td>{readAccess}</td>
+                        <td>{writeAccess}</td>
+                    </tr>
+                );
+            } else {
+                return (
+                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                        <td>
+                            <a href="javascript:void(0);" onMouseDown={this.onLinkMouseDown} onClick={this.openFolder}>
+                                <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
+                                {this.props.item.title}
+                            </a>
+                        </td>
+                        <td>-</td>
+                    </tr>
+                );
+            }
         } else {
             let modifiedAt = moment(this.props.item['timeUpdated']).format("DD-MM-YY HH:mm");
 
-            return (
-                <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
-                    <td>
-                        <a href={this.props.item.url}>
-                            <span className="glyphicon glyphicon-file"></span>&nbsp;
-                            {this.props.item.title}
-                        </a>
-                    </td>
-                    <td>{modifiedAt}</td>
-                    <td>{this.props.item.createdBy}</td>
-                    <td>{sharedWith}</td>
-                </tr>
-            );
+            if (!_appData['isWidget']) {
+                return (
+                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                        <td>
+                            <a href={this.props.item.url}>
+                                <span className="glyphicon glyphicon-file"></span>&nbsp;
+                                {this.props.item.title}
+                            </a>
+                        </td>
+                        <td>{modifiedAt}</td>
+                        <td>{readAccess}</td>
+                        <td>{writeAccess}</td>
+                    </tr>
+                );
+            } else {
+                return (
+                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                        <td>
+                            <a href={this.props.item.url}>
+                                <span className="glyphicon glyphicon-file"></span>&nbsp;
+                                {this.props.item.title}
+                            </a>
+                        </td>
+                        <td>{modifiedAt}</td>
+                    </tr>
+                );
+            }
         }
     }
 }

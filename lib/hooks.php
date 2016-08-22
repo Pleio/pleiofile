@@ -16,6 +16,30 @@ function pleiofile_permissions_check($hook_name, $entity_type, $return_value, $p
         return true;
     }
 
+    $write_permission = $entity->write_access_id;
+    if (!$write_permission) {
+        $write_permission = ACCESS_PRIVATE;
+    }
+
+    switch ($write_permission) {
+        case ACCESS_PRIVATE:
+            return;
+            break;
+        case ACCESS_FRIENDS:
+            $owner = $params['entity']->getOwnerEntity();
+            if ($owner && $owner->isFriendsWith($user->guid)) {
+                return true;
+            }
+            break;
+        default:
+            $list = get_access_array($user->guid);
+            if (in_array($write_permission, $list)) {
+                // user in the access collection
+                return true;
+            }
+            break;
+    }
+
     $container = $entity->getContainerEntity();
     if (!$container instanceof ElggGroup) {
         return false;

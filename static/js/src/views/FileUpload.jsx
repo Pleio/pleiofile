@@ -2,33 +2,52 @@ import React from 'react';
 import { Modal, Input, ButtonInput } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import $jq19 from 'jquery';
-import { hideModal } from '../actions';
+import { fetchFolder, hideModal } from '../actions';
 
 class FileUpload extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onClose = this.onClose.bind(this);
-        this.onUpload = this.onUpload.bind(this);
-
-        this.setAccessId = this.setAccessId.bind(this);
         this.changeFiles = this.changeFiles.bind(this);
         this.changeAccessId = this.changeAccessId.bind(this);
+        this.changeWriteAccessId = this.changeWriteAccessId.bind(this);
+
+        this.resetState = this.resetState.bind(this);
+        this.onClose = this.onClose.bind(this);
+        this.onUpload = this.onUpload.bind(this);
 
         this.state = {
             showModal: false,
             uploading: 'waiting_for_input',
             files: [],
+            tags: "",
             succeeded: new Set(),
             failed: new Set(),
-            accessId: null
+            accessId: null,
+            writeAccessId: null
         }
     }
 
-    setAccessId(accessId) {
+    resetState() {
         this.setState({
-            accessId: accessId
-        });
+            accessId: this.props.parent.accessId,
+            writeAccessId: this.props.parent.writeAccessId,
+            files: [],
+            succeeded: new Set(),
+            failed: new Set(),
+            tags: ""
+        })
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            accessId: nextProps.parent.accessId,
+            writeAccessId: nextProps.parent.writeAccessId,
+            files: [],
+            succeeded: new Set(),
+            failed: new Set(),
+            tags: ""
+        })
     }
 
     render() {
@@ -48,7 +67,7 @@ class FileUpload extends React.Component {
 
 
         if (this.state.uploading === 'waiting_for_input') {
-            var uploadButton = (<ButtonInput type="submit" bsStyle="primary" value={elgg.echo('upload')} />)
+            var uploadButton = (<ButtonInput type="submit" bsStyle="primary" value={elgg.echo('upload')} disabled={this.state.files.length === 0} />)
         } else if (this.state.uploading === 'uploading') {
             var uploadButton = (
                 <ButtonInput type="submit" bsStyle="primary" disabled={true}>
@@ -79,9 +98,13 @@ class FileUpload extends React.Component {
                         </div>
                         <form onSubmit={this.onUpload}>
                             <Input type="file" multiple label={elgg.echo('pleiofile:files')} name="files" onChange={this.changeFiles} />
-                            <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.props.parent.accessId} onChange={this.changeAccessId}>
+                            <Input type="select" ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId}>
                                 {accessOptions}
                             </Input>
+                            <Input type="select" ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId}>
+                                {accessOptions}
+                            </Input>
+                            <Input type="text" label={elgg.echo('tags')} name="tags" onChange={this.changeTags} value={this.state.tags} />
                             {uploadButton}
                         </form>
                     </Modal.Body>
@@ -102,7 +125,16 @@ class FileUpload extends React.Component {
         this.setState({accessId: e.target.value});
     }
 
+    changeWriteAccessId(e) {
+        this.setState({writeAccessId: e.target.value});
+    }
+
+    changeTags(e) {
+        this.setState({tags: e.target.value});
+    }
+
     onClose(e) {
+        this.resetState();
         this.props.dispatch(hideModal('fileUpload'));
     }
 
@@ -120,6 +152,7 @@ class FileUpload extends React.Component {
             var file = this.state.files[i];
             data.append('file', file);
             data.append('access_id', this.state.accessId);
+            data.append('write_access_id', this.state.writeAccessId);
             data.append('parent_guid', this.props.parent.guid);
 
             var options = {
@@ -141,7 +174,12 @@ class FileUpload extends React.Component {
                         this.setState({
                             uploading: 'completed'
                         });
-                        this.props.onComplete();
+
+                        this.props.dispatch(fetchFolder(this.props.parent.guid));
+
+                        if (this.state.failed.size == 0) {
+                            this.onClose();
+                        }
                     }
                 }.bind(this)
             };

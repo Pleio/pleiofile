@@ -2,40 +2,53 @@ import React from 'react';
 import FolderSelect from './elements/FolderSelect';
 import { Modal, Input, ButtonInput } from 'react-bootstrap';
 import $jq19 from 'jquery';
+import { connect } from 'react-redux';
+import { editFile, hideModal } from '../actions';
 
 class FileEdit extends React.Component {
     constructor(props) {
         super(props);
-        this.close = this.close.bind(this);
-        this.open = this.open.bind(this);
         this.changeTitle = this.changeTitle.bind(this);
         this.changeAccessId = this.changeAccessId.bind(this);
+        this.changeWriteAccessId = this.changeWriteAccessId.bind(this);
         this.changeTags = this.changeTags.bind(this);
         this.changeParentGuid = this.changeParentGuid.bind(this);
-        this.edit = this.edit.bind(this);
+
+        this.onClose = this.onClose.bind(this);
+        this.onEdit = this.onEdit.bind(this);
 
         this.state = {
             guid: false,
-            showModal: false,
             title: '',
-            accessId: false,
+            accessId: null,
+            writeAccessId: null,
             tags: '',
-            parentGuid: this.props.parentGuid
+            parentGuid: null
         };
     }
 
-    setFile(file) {
-        this.setState({
-            guid: file.guid,
-            title: file.title,
-            accessId: file.access_id,
-            tags: file.tags,
-            parentGuid: this.props.parentGuid
-        });
+    componentWillReceiveProps(nextProps) {
+        let currentItem = nextProps.modal.currentItem
+        if (currentItem) {
+            this.setState({
+                guid: currentItem.guid,
+                title: currentItem.title,
+                accessId: currentItem.accessId,
+                writeAccessId: currentItem.writeAccessId,
+                tags: currentItem.tags,
+                parentGuid: nextProps.parent.guid
+            })
+        } else {
+            this.setState({
+                guid: null,
+                title: "",
+                tags: "",
+                accessId: nextProps.parent.accessId,
+                writeAccessId: 0,
+                parentGuid: nextProps.parent.guid
+            })
+        }
     }
-
-    close() { this.setState({ showModal: false }); }
-    open() { this.setState({ showModal: true }); }
 
     render() {
         var accessOptions = $jq19.map(_appData['accessIds'], function(value, key) {
@@ -44,24 +57,45 @@ class FileEdit extends React.Component {
 
         return (
             <div>
-                <Modal show={this.state.showModal} onHide={this.close}>
+                <Modal show={this.props.modal.current === "fileEdit"} onHide={this.onClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>{elgg.echo('pleiofile:edit_file')}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <form onSubmit={this.edit}>
+                        <form onSubmit={this.onEdit}>
                             <Input type="text" label={elgg.echo('pleiofile:name')} name="title" value={this.state.title} onChange={this.changeTitle} autoFocus="true" />
-                            <Input type="select" ref="accessId" label={elgg.echo('access')} value={this.state.accessId} onChange={this.changeAccessId}>
+                            <Input type="select" ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId}>
+                                {accessOptions}
+                            </Input>
+                            <Input type="select" ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId}>
                                 {accessOptions}
                             </Input>
                             <Input type="text" label={elgg.echo('tags')} name="tags" value={this.state.tags} onChange={this.changeTags} />
-                            <FolderSelect folderTree={this.props.folderTree} folderGuid={0} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />
                             <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('edit')} />
                         </form>
                     </Modal.Body>
                 </Modal>
             </div>
         )
+    }
+
+    onClose(e) {
+        this.props.dispatch(hideModal('fileEdit'));
+    }
+
+    onEdit(e) {
+        e.preventDefault();
+
+        this.props.dispatch(editFile({
+            guid: this.state.guid,
+            title: this.state.title,
+            accessId: this.state.accessId,
+            writeAccessId: this.state.writeAccessId,
+            tags: this.state.tags,
+            parentGuid: this.state.parentGuid
+        }, this.props.parent));
+
+        this.onClose();
     }
 
     changeTitle(e) {
@@ -72,6 +106,10 @@ class FileEdit extends React.Component {
         this.setState({accessId: e.target.value});
     }
 
+    changeWriteAccessId(e) {
+        this.setState({writeAccessId: e.target.value});
+    }
+
     changeTags(e) {
         this.setState({tags: e.target.value});
     }
@@ -79,26 +117,13 @@ class FileEdit extends React.Component {
     changeParentGuid(e) {
         this.setState({parentGuid: e.target.value});
     }
+}
 
-    edit(e) {
-        e.preventDefault();
-        this.close();
-
-        $jq19.ajax({
-            url: '/' + elgg.security.addToken("action/pleiofile/update_file"),
-            data: {
-                guid: this.state.guid,
-                title: this.state.title,
-                access_id: this.state.accessId,
-                tags: this.state.tags,
-                parent_guid: this.state.parentGuid
-            },
-            type: 'POST',
-            success: function(data) {
-                this.props.onComplete();
-            }.bind(this)
-        });
+const mapStateToProps = (state, ownProps) => {
+    return {
+        modal: state.modal,
+        parent: state.folder
     }
 }
 
-export default FileEdit;
+export default connect(mapStateToProps)(FileEdit);

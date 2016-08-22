@@ -1,11 +1,13 @@
 <?php
 
 $dutch = array(
+    'access:read' => 'Leesrechten',
+    'access:write' => 'Schrijfrechten',
     'pleiofile:name' => 'Naam',
     'pleiofile:modified_at' => 'Gewijzigd',
     'pleiofile:shared_with' => 'Gedeeld met',
     'pleiofile:create_file' => 'Nieuw bestand',
-    'pleiofile:upload_file' => 'Upload bestand',
+    'pleiofile:upload_file' => 'Upload bestand(en)',
     'pleiofile:create_folder' => 'Nieuwe map',
     'pleiofile:edit_folder' => 'Wijzig map',
     'pleiofile:edit_file' => 'Wijzig bestand',
@@ -20,6 +22,7 @@ $dutch = array(
     'pleiofile:uploading' => 'Bezig met uploaden...',
     'pleiofile:close' => 'Sluiten',
     'pleiofile:download' => 'Downloaden',
+    'pleiofile:write_access' => 'Schrijfrechten',
     'pleiofile:entity_not_found' => 'Kan het gevraagde object niet tonen. Het bestaat niet of je hebt er geen toegang tot.',
     'pleiofile:file_management:can_add' => 'Groepsleden kunnen bestanden en mappen toevoegen',
     'pleiofile:file_management:can_edit' => 'Groepsleden kunnen bestanden en mappen van anderen wijzigen',

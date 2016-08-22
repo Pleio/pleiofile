@@ -86,14 +86,28 @@ class FileBrowser extends React.Component {
     }
 
     render() {
-        var breadcrumb = this.props.folder.breadcrumb.map(function(crumb) {
-            return (
-                <BreadcrumbItem key={crumb.guid} guid={crumb.guid} title={crumb.title} onOpenFolder={this.openFolder} />
-            )
-        }.bind(this));
-
         var home = ( <BreadcrumbItem key={this.props.homeGuid} guid={this.props.homeGuid} title="Home" onOpenFolder={this.openFolder} /> );
-        breadcrumb.unshift(home);
+        if (!_appData['isWidget']) {
+            var breadcrumb = this.props.folder.breadcrumb.map(function(crumb) {
+                return (
+                    <BreadcrumbItem key={crumb.guid} guid={crumb.guid} title={crumb.title} onOpenFolder={this.openFolder} />
+                )
+            }.bind(this));
+
+            breadcrumb.unshift(home);
+
+            breadcrumb = (
+                <Breadcrumb>
+                    {breadcrumb}
+                </Breadcrumb>
+            )
+        } else {
+            breadcrumb = (
+                <Breadcrumb>
+                    {home}
+                </Breadcrumb>
+            )
+        }
 
         if (_appData['odt_enabled']) {
             var create_odt = (
@@ -116,9 +130,7 @@ class FileBrowser extends React.Component {
         return (
             <div>
                 <div className="pleiofile-breadcrumb">
-                    <Breadcrumb>
-                        {breadcrumb}
-                    </Breadcrumb>
+                    {breadcrumb}
                 </div>
                 {add}
                 <FileList

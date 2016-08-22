@@ -19,7 +19,8 @@ try {
     $browser->createFolder($parent, array(
         'title' => get_input('title'),
         'tags' => string_to_tag_array(get_input('tags')),
-        'access_id' => (int) get_input('access_id')
+        'access_id' => (int) get_input('access_id'),
+        'write_access_id' => (int) get_input('write_access_id')
     ));
 } catch (Exception $e) {
     http_response_code(500);
