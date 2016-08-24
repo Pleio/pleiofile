@@ -3,7 +3,7 @@
 $english = array(
     'access:read' => 'Read access',
     'access:write' => 'Write access',
-    'access:myself' => 'Only myself',
+    'PRIVATE' => 'Only the owner',
     'pleiofile:name' => 'Name',
     'pleiofile:modified_at' => 'Modified at',
     'pleiofile:shared_with' => 'Shared with',

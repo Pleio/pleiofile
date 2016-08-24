@@ -5,10 +5,6 @@ import { Input } from 'react-bootstrap';
 export default class AccessSelect extends React.Component {
     render() {
         var accessOptions = $jq19.map(_appData['accessIds'], function(value, key) {
-            if (key == 0) {
-                value = elgg.echo("access:myself")
-            }
-
             return (<option key={key} value={key}>{value}</option>);
         });
 

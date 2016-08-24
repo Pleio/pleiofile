@@ -3,7 +3,7 @@
 $dutch = array(
     'access:read' => 'Leesrechten',
     'access:write' => 'Schrijfrechten',
-    'access:myself' => 'Alleen ikzelf',
+    'PRIVATE' => 'Alleen de eigenaar',
     'pleiofile:name' => 'Naam',
     'pleiofile:modified_at' => 'Gewijzigd',
     'pleiofile:shared_with' => 'Gedeeld met',
