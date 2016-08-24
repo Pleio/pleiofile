@@ -9,7 +9,7 @@ import FileEdit from './FileEdit';
 import FileList from './FileList';
 import $jq19 from 'jquery';
 import { connect } from 'react-redux';
-import { fetchFolder, showModal } from '../actions';
+import { fetchFolder, fetchFolderTree, showModal } from '../actions';
 
 class FileBrowser extends React.Component {
     constructor(props) {
@@ -31,6 +31,10 @@ class FileBrowser extends React.Component {
         }
 
         this.openFolder(guid);
+
+        if (_appData['containerGuid']) {
+            this.props.dispatch(fetchFolderTree(_appData['containerGuid']));
+        }
     }
 
     refreshFolder() {

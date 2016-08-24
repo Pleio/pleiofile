@@ -149,7 +149,9 @@ class PleioFileBrowser {
 
         $totalFiles = $this->getFiles($folder, 1, 0, true);
 
-        if ($limit > count($folders)) {
+        if ($limit == 0) {
+            $files = $this->getFiles($folder, 0, max(0, $offset-$totalFolders), false);
+        } elseif ($limit > count($folders)) {
             $files = $this->getFiles($folder, $limit-count($folders), max(0, $offset-$totalFolders), false);
         } else {
             $files = array();
@@ -221,7 +223,7 @@ class PleioFileBrowser {
             return false;
         }
 
-        $objects = $this->getFolderContents($folder);
+        list($count, $objects) = $this->getFolderContents($folder);
         foreach ($objects as $object) {
             $subtype = $object->getSubtype();
             if ($subtype == 'folder') {

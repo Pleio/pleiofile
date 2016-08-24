@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-import { SHOW_MODAL, HIDE_MODAL, CHANGE_SORT, REQUEST_FOLDER, RECEIVE_FOLDER } from './actions'
+import { SHOW_MODAL, HIDE_MODAL, CHANGE_SORT, REQUEST_FOLDER, RECEIVE_FOLDER, RECEIVE_FOLDER_TREE } from './actions'
 import { OrderedSet } from 'immutable';
 import { sortItems } from './helpers';
 
@@ -26,6 +26,7 @@ function modal(state = {
 function folder(state = {
     isFetching: false,
     title: "",
+    tree: [],
     breadcrumb: [],
     children: new OrderedSet,
     sortOn: "title",
@@ -53,6 +54,10 @@ function folder(state = {
                 children: new OrderedSet(sortItems(action.folder.children, state.sortOn, state.sortAscending)),
                 offset: action.offset,
                 limit: action.limit
+            })
+        case RECEIVE_FOLDER_TREE:
+            return Object.assign({}, state, {
+                tree: action.tree
             })
         default:
             return state

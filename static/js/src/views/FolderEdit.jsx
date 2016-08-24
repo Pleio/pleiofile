@@ -55,9 +55,11 @@ class FolderEdit extends React.Component {
         if (this.props.modal.currentItem) {
             var modalTitle = elgg.echo('pleiofile:edit_folder');
             var buttonValue = elgg.echo('edit');
-            var folderSelect;
-            //var folderSelect = (<FolderSelect folderTree={this.props.folderTree} folderGuid={this.state.guid} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />);
+            var folderSelect = (
+                <FolderSelect folderTree={this.props.folderTree} folderGuid={this.state.guid} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />
+            );
         } else {
+            var folderSelect = "";
             var modalTitle = elgg.echo('pleiofile:create_folder');
             var buttonValue = elgg.echo('create');
         }
@@ -120,7 +122,7 @@ class FolderEdit extends React.Component {
                 tags: this.state.tags,
                 accessId: this.state.accessId,
                 writeAccessId: this.state.writeAccessId,
-                parentGuid: this.props.parent.guid
+                parentGuid: this.state.parentGuid
             }, this.props.parent));
         } else {
             this.props.dispatch(createFolder({
@@ -128,7 +130,7 @@ class FolderEdit extends React.Component {
                 tags: this.state.tags,
                 accessId: this.state.accessId,
                 writeAccessId: this.state.writeAccessId,
-                parentGuid: this.props.parent.guid
+                parentGuid: this.state.parentGuid
             }, this.props.parent));
         }
     }

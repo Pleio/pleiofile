@@ -13,6 +13,9 @@ export const HIDE_MODAL = 'HIDE_MODAL'
 export const REQUEST_FOLDER = 'REQUEST_FOLDER'
 export const RECEIVE_FOLDER = 'RECEIVE_FOLDER'
 
+export const REQUEST_FOLDER_TREE = 'REQUEST_FOLDER_TREE'
+export const RECEIVE_FOLDER_TREE = 'RECEIVE_FOLDER_TREE'
+
 export const CHANGE_SORT = 'CHANGE_SORT'
 
 export function fetchFolder(guid, limit = 100, offset = 0) {
@@ -40,6 +43,31 @@ function receiveFolder(folder, limit, offset) {
         limit: limit,
         offset: offset,
         receivedAt: Date.now()
+    }
+}
+
+export function fetchFolderTree(guid) {
+    return dispatch => {
+        dispatch(requestFolderTree())
+
+        return fetch('/pleiofile/folder_tree?containerGuid=' + guid, {
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(json => dispatch(receiveFolderTree(json)))
+    }
+}
+
+function requestFolderTree() {
+    return {
+        type: REQUEST_FOLDER_TREE
+    }
+}
+
+function receiveFolderTree(tree) {
+    return {
+        type: RECEIVE_FOLDER_TREE,
+        tree
     }
 }
 
@@ -114,7 +142,13 @@ export function editFolder(folder, container) {
             method: 'POST',
             body
         })
-        .then(response => dispatch(fetchFolder(container.guid)))
+        .then(response => {
+            dispatch(fetchFolder(container.guid))
+
+            if (_appData['containerGuid']) {
+                dispatch(fetchFolderTree(_appData['containerGuid']))
+            }
+        })
     }
 }
 
@@ -141,7 +175,13 @@ export function createFolder(folder, container) {
             method: 'POST',
             body
         })
-        .then(response => dispatch(fetchFolder(container.guid)))
+        .then(response => {
+            dispatch(fetchFolder(container.guid))
+
+            if (_appData['containerGuid']) {
+                dispatch(fetchFolderTree(_appData['containerGuid']))
+            }
+        })
     }
 }
 

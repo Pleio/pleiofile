@@ -63,6 +63,7 @@ class FileEdit extends React.Component {
                             <AccessSelect ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId} />
                             <AccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
                             <Input type="text" label={elgg.echo('tags')} name="tags" value={this.state.tags} onChange={this.changeTags} />
+                            <FolderSelect folderGuid={this.state.guid} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />
                             <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('edit')} />
                         </form>
                     </Modal.Body>

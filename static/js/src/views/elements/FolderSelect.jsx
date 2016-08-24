@@ -1,4 +1,6 @@
 import React from 'react';
+import $ from 'jquery';
+import { connect } from 'react-redux';
 import { Input } from 'react-bootstrap';
 
 class FolderSelect extends React.Component {
@@ -29,7 +31,7 @@ class FolderSelect extends React.Component {
             }
         }.bind(this);
 
-        iterateTree(this.props.folderTree, '');
+        iterateTree(this.props.folder.tree, '');
         return tree;
     }
 
@@ -48,4 +50,10 @@ class FolderSelect extends React.Component {
     }
 }
 
-export default FolderSelect;
+const mapStateToProps = (state, ownProps) => {
+    return {
+        folder: state.folder
+    }
+}
+
+export default connect(mapStateToProps)(FolderSelect);

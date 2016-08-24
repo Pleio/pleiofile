@@ -1,6 +1,6 @@
 <?php
 
-$container_guid = get_input('container_guid');
+$container_guid = get_input('containerGuid');
 $container = get_entity($container_guid);
 
 if (!$container) {
