@@ -9,6 +9,8 @@ var sourcemaps = require('gulp-sourcemaps');
 var gutil = require('gulp-util');
 var assign = require('lodash.assign');
 var sass = require('gulp-sass');
+var envify = require('loose-envify');
+
 
 var customOpts = {
     entries: ['static/js/src/pleiofile.jsx'],
@@ -50,7 +52,8 @@ gulp.task('build', function() {
     var opts = assign({}, watchify.args, customOpts);
     var b = browserify(opts);
 
-    b.transform('babelify', {
+    b.transform('envify', {global: true, _: 'purge', NODE_ENV: 'production'})
+     .transform('babelify', {
         presets: ['es2015', 'react']
     })
 

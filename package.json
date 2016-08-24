@@ -45,6 +45,7 @@
     "build"
   ],
   "devDependencies": {
+    "loose-envify": "^1.2.0",
     "precommit-hook": "^3.0.0"
   }
 }
