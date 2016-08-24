@@ -169,7 +169,7 @@ class FileUpload extends React.Component {
                             uploading: 'completed'
                         });
 
-                        this.props.dispatch(fetchFolder(this.props.parent.guid));
+                        this.props.onComplete();
 
                         if (this.state.failed.size == 0) {
                             this.onClose();

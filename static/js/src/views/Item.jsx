@@ -94,8 +94,8 @@ class Item extends React.Component {
                             </a>
                         </td>
                         <td>{modifiedAt}</td>
-                        <td>{readAccess}</td>
-                        <td>{writeAccess}</td>
+                        <td>{this.getAccessLabel(this.props.item.accessId)}</td>
+                        <td>{this.getAccessLabel(this.props.item.writeAccessId)}</td>
                     </tr>
                 );
             } else {
