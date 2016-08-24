@@ -15,6 +15,34 @@ export const RECEIVE_FOLDER = 'RECEIVE_FOLDER'
 
 export const CHANGE_SORT = 'CHANGE_SORT'
 
+export function fetchFolder(guid, limit = 100, offset = 0) {
+    return dispatch => {
+        dispatch(requestFolder())
+
+        return fetch('/pleiofile/browse?containerGuid=' + guid + '&limit=' + limit + '&offset=' + offset, {
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(json => dispatch(receiveFolder(json, limit, offset)))
+    }
+}
+
+function requestFolder() {
+    return {
+        type: REQUEST_FOLDER
+    }
+}
+
+function receiveFolder(folder, limit, offset) {
+    return {
+        type: RECEIVE_FOLDER,
+        folder,
+        limit: limit,
+        offset: offset,
+        receivedAt: Date.now()
+    }
+}
+
 export function uploadFiles(file, container) {
     return dispatch => {
         dispatch(requestUploadFile(file))
@@ -31,6 +59,13 @@ export function uploadFiles(file, container) {
             body
         })
         .then(response => dispatch(fetchFolder(container.guid)))
+    }
+}
+
+function requestUploadFile(file) {
+    return {
+        type: REQUEST_UPLOAD_FILE,
+        file
     }
 }
 
@@ -55,6 +90,13 @@ export function editFile(file, container) {
     }
 }
 
+function requestEditFile(file) {
+    return {
+        type: REQUEST_EDIT_FILE,
+        file
+    }
+}
+
 export function editFolder(folder, container) {
     return dispatch => {
         dispatch(requestEditFolder(folder))
@@ -73,6 +115,13 @@ export function editFolder(folder, container) {
             body
         })
         .then(response => dispatch(fetchFolder(container.guid)))
+    }
+}
+
+function requestEditFolder(folder) {
+    return {
+        type: REQUEST_EDIT_FOLDER,
+        folder
     }
 }
 
@@ -96,28 +145,6 @@ export function createFolder(folder, container) {
     }
 }
 
-export function changeSort(sortOn, sortAscending) {
-    return {
-        type: CHANGE_SORT,
-        sortOn,
-        sortAscending
-    }
-}
-
-function requestUploadFile(file) {
-    return {
-        type: REQUEST_UPLOAD_FILE,
-        file
-    }
-}
-
-function requestEditFile(file) {
-    return {
-        type: REQUEST_EDIT_FILE,
-        file
-    }
-}
-
 function requestCreateFolder(folder) {
     return {
         type: REQUEST_CREATE_FOLDER,
@@ -125,10 +152,11 @@ function requestCreateFolder(folder) {
     }
 }
 
-function requestEditFolder(folder) {
+export function changeSort(sortOn, sortAscending) {
     return {
-        type: REQUEST_EDIT_FOLDER,
-        folder
+        type: CHANGE_SORT,
+        sortOn,
+        sortAscending
     }
 }
 
@@ -145,31 +173,5 @@ export function hideModal(modal, item) {
         type: HIDE_MODAL,
         modal,
         item
-    }
-}
-
-function requestFolder() {
-    return {
-        type: REQUEST_FOLDER
-    }
-}
-
-function receiveFolder(folder) {
-    return {
-        type: RECEIVE_FOLDER,
-        folder,
-        receivedAt: Date.now()
-    }
-}
-
-export function fetchFolder(guid) {
-    return dispatch => {
-        dispatch(requestFolder())
-
-        return fetch('/pleiofile/browse?containerGuid=' + guid , {
-            credentials: 'same-origin'
-        })
-        .then(response => response.json())
-        .then(json => dispatch(receiveFolder(json)))
     }
 }

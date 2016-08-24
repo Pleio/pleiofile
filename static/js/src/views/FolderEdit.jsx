@@ -4,6 +4,7 @@ import { Modal, Input, ButtonInput } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import $jq19 from 'jquery';
 import { hideModal, createFolder, editFolder } from '../actions';
+import AccessSelect from './elements/AccessSelect';
 
 class FolderEdit extends React.Component {
     constructor(props) {
@@ -29,7 +30,6 @@ class FolderEdit extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         let currentItem = nextProps.modal.currentItem
-        console.log(currentItem)
         if (currentItem) {
             this.setState({
                 guid: currentItem.guid,
@@ -62,10 +62,6 @@ class FolderEdit extends React.Component {
             var buttonValue = elgg.echo('create');
         }
 
-        var accessOptions = $jq19.map(_appData['accessIds'], function(value, key) {
-            return (<option key={key} value={key}>{value}</option>);
-        });
-
         return (
             <div>
                 <Modal show={this.props.modal.current == "folderEdit"} onHide={this.onClose}>
@@ -75,12 +71,8 @@ class FolderEdit extends React.Component {
                     <Modal.Body>
                         <form onSubmit={this.onCreate}>
                             <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} onChange={this.changeTitle} value={this.state.title} autoFocus={true} />
-                            <Input type="select" ref="accessId" label={elgg.echo('access:read')} onChange={this.changeAccessId} value={this.state.accessId}>
-                                {accessOptions}
-                            </Input>
-                            <Input type="select" ref="writeAccessId" label={elgg.echo('access:write')} onChange={this.changeWriteAccessId} value={this.state.writeAccessId}>
-                                {accessOptions}
-                            </Input>
+                            <AccessSelect ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId} />
+                            <AccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
                             <Input type="text" label={elgg.echo('tags')} name="tags" onChange={this.changeTags} value={this.state.tags} />
                             {folderSelect}
                             <ButtonInput type="submit" bsStyle="primary" value={buttonValue} />

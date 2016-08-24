@@ -61,54 +61,101 @@ class PleioFileBrowser {
         );
     }
 
-    public function getFolderContents($folder) {
-        if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
-            $container = $folder;
-        } else {
-            $container = $folder->getContainerEntity();
-        }
-
-        $db_prefix = elgg_get_config("dbprefix");
+    private function getFiles($parent, $limit = 100, $offset = 0, $count = false) {
+        $dbprefix = elgg_get_config("dbprefix");
 
         $options = array(
             'type' => 'object',
             'subtype' => 'file',
-            'container_guid' => $container->guid,
-            'limit' => 100,
-            'joins' => "JOIN {$db_prefix}objects_entity oe ON e.guid = oe.guid",
-            'order_by' => 'oe.title ASC'
+            'limit' => $limit,
+            'offset' => $offset
         );
 
-        if ($folder instanceof ElggUser | $folder instanceof ElggGroup) {
-            $parent_guid = 0;
-            $options['wheres'] = "NOT EXISTS (
-                    SELECT 1 FROM {$db_prefix}entity_relationships r
-                    WHERE r.guid_two = e.guid AND
-                    r.relationship = 'folder_of')";
-            $files = elgg_get_entities($options);
+        if (!$count) {
+            $options['joins'] = "JOIN {$dbprefix}objects_entity oe ON e.guid = oe.guid";
+            $options['order_by'] = 'oe.title ASC';
         } else {
-            $parent_guid = $folder->guid;
-            $options['relationship'] = "folder_of";
-            $options['relationship_guid'] = $parent_guid;
-            $files = elgg_get_entities_from_relationship($options);
+            $options['count'] = true;
         }
+
+        if ($parent) {
+            if ($parent instanceof ElggUser | $parent instanceof ElggGroup) {
+                $options['container_guid'] = $parent->guid;
+                $options['wheres'] = "NOT EXISTS (
+                        SELECT 1 FROM {$dbprefix}entity_relationships r
+                        WHERE r.guid_two = e.guid AND
+                        r.relationship = 'folder_of')";
+            } else {
+                $options['container_guid'] = $parent->container_guid;
+                $options['relationship'] = "folder_of";
+                $options['relationship_guid'] = $parent->guid;
+            }
+        }
+
+        return elgg_get_entities_from_relationship($options);
+    }
+
+    private function getFolders($parent, $limit = 100, $offset = 0, $count = false) {
+        $dbprefix = elgg_get_config("dbprefix");
 
         $options = array(
             'type' => 'object',
             'subtype' => 'folder',
-            'container_guid' => $container->guid,
-            'limit' => 100,
-            'metadata_name_value_pairs' => array(array(
-                'name' => 'parent_guid',
-                'value' => $parent_guid
-            )),
-            'joins' => "JOIN {$db_prefix}objects_entity oe ON e.guid = oe.guid",
-            'order_by' => 'oe.title ASC'
+            'limit' => $limit,
+            'offset' => $offset
         );
 
-        $folders = elgg_get_entities_from_metadata($options);
+        if (!$count) {
+            $options['joins'] = "JOIN {$dbprefix}objects_entity oe ON e.guid = oe.guid";
+            $options['order_by'] = 'oe.title ASC';
+        } else {
+            $options['count'] = true;
+        }
 
-        return array_merge($folders, $files);
+        if ($parent) {
+            if ($parent instanceof ElggUser | $parent instanceof ElggGroup) {
+                $options['container_guid'] = $parent->guid;
+                $options['metadata_name_value_pairs'] = array(array(
+                    'name' => 'parent_guid',
+                    'value' => 0
+                ));
+            } else {
+                $options['container_guid'] = $parent->container_guid;
+                $options['metadata_name_value_pairs'] = array(array(
+                    'name' => 'parent_guid',
+                    'value' => $parent->guid
+                ));
+            }
+
+            return elgg_get_entities_from_metadata($options);
+        } else {
+            if (!$count) {
+                return array();
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    public function getFolderContents($folder, $limit = 100, $offset = 0) {
+        if ($folder) {
+            $totalFolders = $this->getFolders($folder, $limit, $offset, true);
+            $folders = $this->getFolders($folder, $limit, $offset, false);
+        } else {
+            // when we are on site-level, we only have files.
+            $totalFolders = 0;
+            $folders = array();
+        }
+
+        $totalFiles = $this->getFiles($folder, 1, 0, true);
+
+        if ($limit > count($folders)) {
+            $files = $this->getFiles($folder, $limit-count($folders), max(0, $offset-$totalFolders), false);
+        } else {
+            $files = array();
+        }
+
+        return array($totalFolders + $totalFiles, array_merge($folders, $files));
     }
 
     public function createFolder($parent, $params = array()) {
@@ -236,6 +283,8 @@ class PleioFileBrowser {
         }
 
         pleiofile_generate_file_thumbs($file);
+
+        return $file;
     }
 
     public function updateFile($file, $params = array()) {

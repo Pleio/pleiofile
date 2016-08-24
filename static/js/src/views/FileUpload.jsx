@@ -3,6 +3,7 @@ import { Modal, Input, ButtonInput } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import $jq19 from 'jquery';
 import { fetchFolder, hideModal } from '../actions';
+import AccessSelect from './elements/AccessSelect';
 
 class FileUpload extends React.Component {
     constructor(props) {
@@ -18,7 +19,7 @@ class FileUpload extends React.Component {
 
         this.state = {
             showModal: false,
-            uploading: 'waiting_for_input',
+            uploading: "waiting_for_input",
             files: [],
             tags: "",
             succeeded: new Set(),
@@ -41,6 +42,7 @@ class FileUpload extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         this.setState({
+            uploading: "waiting_for_input",
             accessId: nextProps.parent.accessId,
             writeAccessId: nextProps.parent.writeAccessId,
             files: [],
@@ -51,10 +53,6 @@ class FileUpload extends React.Component {
     }
 
     render() {
-        var accessOptions = $jq19.map(_appData['accessIds'], function(value, key) {
-            return (<option key={key} value={key}>{value}</option>);
-        });
-
         var files = $.map(this.state.files, function(file, i) {;
             if (this.state.succeeded.has(i)) {
                 var className = "success";
@@ -76,7 +74,7 @@ class FileUpload extends React.Component {
             );
         } else {
             var uploadButton = (
-                <ButtonInput type="button" bsStyle="primary" onClick={this.clickCloseButton}>
+                <ButtonInput type="button" bsStyle="primary" onClick={this.onClose}>
                     {elgg.echo('pleiofile:close')}
                 </ButtonInput>
             );
@@ -98,12 +96,8 @@ class FileUpload extends React.Component {
                         </div>
                         <form onSubmit={this.onUpload}>
                             <Input type="file" multiple label={elgg.echo('pleiofile:files')} name="files" onChange={this.changeFiles} />
-                            <Input type="select" ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId}>
-                                {accessOptions}
-                            </Input>
-                            <Input type="select" ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId}>
-                                {accessOptions}
-                            </Input>
+                            <AccessSelect ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId} />
+                            <AccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
                             <Input type="text" label={elgg.echo('tags')} name="tags" onChange={this.changeTags} value={this.state.tags} />
                             {uploadButton}
                         </form>

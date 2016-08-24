@@ -9,7 +9,8 @@ $data = array(
     'containerGuid' => $container->guid,
     'accessIds' => get_write_access_array(),
     'isWidget' => true,
-    'odt_enabled' => elgg_is_active_plugin('odt_editor') ? true : false
+    'odt_enabled' => elgg_is_active_plugin('odt_editor') ? true : false,
+    'limit' => $widget->limit ? $widget->limit : 10
 );
 
 echo "<script> var _appData = " . json_encode($data) . "; </script>";

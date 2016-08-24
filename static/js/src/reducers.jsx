@@ -30,6 +30,8 @@ function folder(state = {
     children: new OrderedSet,
     sortOn: "title",
     sortAscending: true,
+    offset: 0,
+    limit: 100,
     accessId: 0,
     writeAccessId: 0
 }, action) {
@@ -48,7 +50,9 @@ function folder(state = {
             return Object.assign({}, state, action.folder, {
                 receivedAt: action.receivedAt,
                 isFetching: false,
-                children: new OrderedSet(sortItems(action.folder.children, state.sortOn, state.sortAscending))
+                children: new OrderedSet(sortItems(action.folder.children, state.sortOn, state.sortAscending)),
+                offset: action.offset,
+                limit: action.limit
             })
         default:
             return state

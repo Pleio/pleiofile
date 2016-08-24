@@ -1,9 +1,9 @@
 import React from 'react';
 import FolderSelect from './elements/FolderSelect';
 import { Modal, Input, ButtonInput } from 'react-bootstrap';
-import $jq19 from 'jquery';
 import { connect } from 'react-redux';
 import { editFile, hideModal } from '../actions';
+import AccessSelect from './elements/AccessSelect';
 
 class FileEdit extends React.Component {
     constructor(props) {
@@ -51,10 +51,6 @@ class FileEdit extends React.Component {
     }
 
     render() {
-        var accessOptions = $jq19.map(_appData['accessIds'], function(value, key) {
-            return (<option key={key} value={key}>{value}</option>);
-        });
-
         return (
             <div>
                 <Modal show={this.props.modal.current === "fileEdit"} onHide={this.onClose}>
@@ -64,12 +60,8 @@ class FileEdit extends React.Component {
                     <Modal.Body>
                         <form onSubmit={this.onEdit}>
                             <Input type="text" label={elgg.echo('pleiofile:name')} name="title" value={this.state.title} onChange={this.changeTitle} autoFocus="true" />
-                            <Input type="select" ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId}>
-                                {accessOptions}
-                            </Input>
-                            <Input type="select" ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId}>
-                                {accessOptions}
-                            </Input>
+                            <AccessSelect ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId} />
+                            <AccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
                             <Input type="text" label={elgg.echo('tags')} name="tags" value={this.state.tags} onChange={this.changeTags} />
                             <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('edit')} />
                         </form>
