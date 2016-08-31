@@ -25,17 +25,21 @@ if ($container_guid) {
 $json = array();
 if ($container) {
     $json['guid'] = $container->guid;
-    $json['canWriteFiles'] = $container->getContainerEntity()->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT);
-    $json['canWriteFolders'] = $container->getContainerEntity()->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
 
     if ($container instanceof ElggUser | $container instanceof ElggGroup) {
+        elgg_set_page_owner_guid($container->guid);
         $json['title'] = $container->name;
         $json['accessId'] = get_default_access();
         $json['writeAccessId'] = ACCESS_PRIVATE;
+        $json['canWriteFiles'] = $container->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT);
+        $json['canWriteFolders'] = $container->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
     } else {
+        elgg_set_page_owner_guid($container->getContainerEntity()->guid);
         $json['title'] = $container->title;
         $json['accessId'] = (int) $container->access_id;
         $json['writeAccessId'] = $container->write_access_id ? $container->write_access_id : ACCESS_PRIVATE;
+        $json['canWriteFiles'] = $container->getContainerEntity()->canWriteToContainer(0, 'object', PLEIOFILE_FILE_OBJECT);
+        $json['canWriteFolders'] = $container->getContainerEntity()->canWriteToContainer(0, 'object', PLEIOFILE_FOLDER_OBJECT);
     }
 } else {
     $json['guid'] = 0;
