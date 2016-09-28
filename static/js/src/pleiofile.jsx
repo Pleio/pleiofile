@@ -5,6 +5,7 @@ import createLogger from 'redux-logger';
 import { Provider } from 'react-redux';
 import rootReducer from './reducers';
 import React from 'react';
+import 'babel-polyfill';
 
 const loggerMiddleware = createLogger();
 let store = createStore(rootReducer, {}, applyMiddleware(

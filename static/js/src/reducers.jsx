@@ -2,7 +2,6 @@ import { combineReducers } from 'redux'
 import { SHOW_MODAL, HIDE_MODAL, CHANGE_SORT, REQUEST_FOLDER, RECEIVE_FOLDER, RECEIVE_FOLDER_TREE } from './actions'
 import { OrderedSet } from 'immutable';
 import { sortItems } from './helpers';
-import _ from 'lodash';
 
 function modal(state = {
     current: null,
@@ -10,12 +9,12 @@ function modal(state = {
 }, action) {
     switch (action.type) {
         case SHOW_MODAL:
-            return _.assign({}, state, {
+            return Object.assign({}, state, {
                 current: action.modal,
                 currentItem: action.item
             })
         case HIDE_MODAL:
-            return _.assign({}, state, {
+            return Object.assign({}, state, {
                 current: null,
                 currentItem: undefined
             })
@@ -39,17 +38,17 @@ function folder(state = {
 }, action) {
     switch (action.type) {
         case CHANGE_SORT:
-            return _.assign({}, state, {
+            return Object.assign({}, state, {
                 sortOn: action.sortOn,
                 sortAscending: action.sortAscending,
                 children: new OrderedSet(sortItems(state.children, action.sortOn, action.sortAscending))
             })
         case REQUEST_FOLDER:
-            return _.assign({}, state, {
+            return Object.assign({}, state, {
                 isFetching: true
             })
         case RECEIVE_FOLDER:
-            return _.assign({}, state, action.folder, {
+            return Object.assign({}, state, action.folder, {
                 receivedAt: action.receivedAt,
                 isFetching: false,
                 children: new OrderedSet(sortItems(action.folder.children, state.sortOn, state.sortAscending)),
@@ -57,7 +56,7 @@ function folder(state = {
                 limit: action.limit
             })
         case RECEIVE_FOLDER_TREE:
-            return _.assign({}, state, {
+            return Object.assign({}, state, {
                 tree: action.tree
             })
         default:
