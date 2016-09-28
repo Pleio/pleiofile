@@ -17,6 +17,7 @@ $dutch = array(
     'pleiofile:parent_folder' => 'Bovenliggende map',
     'pleiofile:number_items' => 'Aantal items',
     'file_tools:forms:edit:parent' => 'Bovenliggende map',
+    'pleiofile:update_children' => 'Wijzig permissies van onderliggende items',
     'pleiofile:files' => 'Bestand(en)',
     'pleiofile:item_selected' => 'item geselecteerd.',
     'pleiofile:items_selected' => 'items geselecteerd.',

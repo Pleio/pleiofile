@@ -15,7 +15,6 @@ class Item extends React.Component {
     }
 
     onOpenFolder(e) {
-        console.log('Open folder');
         this.props.onOpenFolder(this.props.item.guid);
     }
 

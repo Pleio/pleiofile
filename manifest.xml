@@ -20,5 +20,10 @@
     <priority>after</priority>
   </requires>
 
+  <conflicts>
+      <type>plugin</type>
+      <name>file_tools</name>
+  </conflicts>
+
   <category>Pleio</category>
 </plugin_manifest>

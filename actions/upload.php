@@ -31,7 +31,7 @@ try {
         'stream' => file_get_contents($_FILES['file']['tmp_name']),
         'access_id' => get_input('access_id'),
         'write_access_id' => get_input('write_access_id'),
-        'type' => $_FILES['upload']['type']
+        'type' => $_FILES['file']['type']
     ));
 
     add_to_river('river/object/file/create', 'create', elgg_get_logged_in_user_guid(), $file->guid);

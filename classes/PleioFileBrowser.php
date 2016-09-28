@@ -169,7 +169,7 @@ class PleioFileBrowser {
 
         $folder = new ElggObject();
         $folder->subtype = 'folder';
-        $folder->title = $params['title'];
+        $folder->title = $this->generateTitle($params['title'], $parent);
         $folder->container_guid = $container->guid;
         $folder->tags = $params['tags'];
 
@@ -198,14 +198,42 @@ class PleioFileBrowser {
     }
 
     public function updateFolder($folder, $params = array()) {
-        $folder->title = $params['title'];
-        $folder->access_id = $params['access_id'];
-        $folder->write_access_id = $params['write_access_id'];
-        if (!$folder->write_access_id) {
+        if ($params['title']) {
+            $folder->title = $params['title'];
+        }
+
+        if ($params['access_id']) {
+            $folder->access_id = $params['access_id'];
+        }
+
+        if ($params['write_access_id']) {
+            $folder->write_access_id = $params['write_access_id'];
+        } else {
             $folder->write_access_id = ACCESS_PRIVATE;
         }
 
-        $folder->tags = $params['tags'];
+        if ($params['update_children']) {
+            list($count, $objects) = $this->getFolderContents($folder);
+            foreach ($objects as $object) {
+                $subtype = $object->getSubtype();
+                if ($subtype == 'folder') {
+                    $this->updateFolder($object, array(
+                        'access_id' => $params['access_id'],
+                        'write_access_id' => $params['write_access_id'],
+                        'update_children' => true
+                    ));
+                } elseif ($subtype == 'file') {
+                    $this->updateFile($object, array(
+                        'access_id' => $params['access_id'],
+                        'write_access_id' => $params['write_access_id']
+                    ));
+                }
+            }
+        }
+
+        if ($params['tags']) {
+            $folder->tags = $params['tags'];
+        }
 
         if ($params['parent_guid'] && $folder->parent_guid !== $folder->guid) {
             if ($params['parent_guid'] == $folder->container_guid) {
@@ -254,7 +282,7 @@ class PleioFileBrowser {
         }
 
         $file = new FilePluginFile();
-        $file->title = $params['filename'];
+        $file->title = $this->generateTitle($params['filename'], $parent);
         $file->access_id = $access_id;
         $file->write_access_id = $params['write_access_id'];
         if (!$file->write_access_id) {
@@ -267,12 +295,11 @@ class PleioFileBrowser {
         $file->setFilename("file/" . $filestorename);
         $file->originalfilename = $params['filename'];
 
-        if ($params['stream']) {
-            file_put_contents($file->getFilenameOnFilestore(), $params['stream']);
-        } else {
-            $input = fopen("php://input", "r");
-            file_put_contents($file->getFilenameOnFilestore(), $input);
-        }
+        // Open the file to guarantee the directory exists
+        $file->open("write");
+        $file->close();
+
+        file_put_contents($file->getFilenameOnFilestore(), $params['stream']);
 
         $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), $params['type']);
         $file->setMimeType($mime_type);
@@ -294,41 +321,75 @@ class PleioFileBrowser {
             return true;
         }
 
-        if ($params['parent_guid']) {
-            $parent = get_entity($params['parent_guid']);
+        if ($params['title']) {
+            $file->title = $params['title'];
         }
 
-        if (!$parent) {
-            $parents = $file->getEntitiesFromRelationship(array(
-                'relationship' => "folder_of",
-                'inverse' => true
-            ));
-
-            if ($parents) {
-                $parent = $parents[0];
-            } else {
-                $parent = $file->getContainerEntity();
-            }
+        if ($params['access_id']) {
+            $file->access_id = $params['access_id'];
         }
 
-        $file->title = $params['title'];
-        $file->access_id = $params['access_id'];
-        $file->write_access_id = $params['write_access_id'];
-        if (!$file->write_access_id) {
+        if ($params['write_access_id']) {
+            $file->write_access_id = $params['write_access_id'];
+        } else {
             $file->write_access_id = ACCESS_PRIVATE;
         }
 
-        $file->tags = $params['tags'];
+        if ($params['tags']) {
+            $file->tags = $params['tags'];
+        }
+
+        if ($params['stream']) {
+            $file->originalfilename = $params['filename'];
+
+            // Open the file to guarantee the directory exists
+            $file->open("write");
+            $file->close();
+
+            file_put_contents($file->getFilenameOnFilestore(), $params['stream']);
+
+            $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), $params['type']);
+            $file->setMimeType($mime_type);
+            $file->simpletype = file_get_simple_type($mime_type);
+            pleiofile_generate_file_thumbs($file);
+        }
+
         $result = $file->save();
 
-        if ($parent instanceof ElggObject) {
-            add_entity_relationship($parent->guid, "folder_of", $file->guid);
-        } elseif ($parent instanceof ElggGroup) {
+        if ($params['parent_guid'] != $file->parent_guid) {
+            $new_parent = get_entity($params['parent_guid']);
+
             remove_entity_relationships($file->guid, "folder_of", true);
+            if ($new_parent instanceof ElggObject) {
+                add_entity_relationship($new_parent->guid, "folder_of", $file->guid);
+            }
         }
 
         return $result;
+    }
 
+    private function generateTitle($requestedTitle, $parent) {
+        $requestedTitle = trim($requestedTitle);
+
+        if (!$parent || $parent instanceof ElggUser) {
+            // do not generate a title for site-level objects
+            return $requestedTitle;
+        }
+
+        $titles = [];
+        list($count, $objects) = $this->getFolderContents($parent);
+        foreach ($objects as $object) {
+            $titles[] = $object->title;
+        }
+
+        $generatedTitle = $requestedTitle;
+        $i = 2;
+        while (in_array($generatedTitle, $titles)) {
+            $generatedTitle = $requestedTitle . " (" . $i . ")";
+            $i += 1;
+        }
+
+        return $generatedTitle;
     }
 
     public function downloadFile($file) {

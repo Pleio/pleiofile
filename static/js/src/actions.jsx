@@ -109,6 +109,10 @@ export function editFile(file, container) {
         body.append('write_access_id', file.writeAccessId);
         body.append('parent_guid', file.parentGuid);
 
+        if (file.file) {
+            body.append('file', file.file);
+        }
+
         return fetch('/' + elgg.security.addToken('action/pleiofile/edit_file'), {
             credentials: 'same-origin',
             method: 'POST',
@@ -136,6 +140,7 @@ export function editFolder(folder, container) {
         body.append('write_access_id', folder.writeAccessId);
         body.append('tags', folder.tags);
         body.append('parent_guid', folder.parentGuid);
+        body.append('update_children', folder.updateChildren);
 
         return fetch('/' + elgg.security.addToken('action/pleiofile/edit_folder'), {
             credentials: 'same-origin',

@@ -17,6 +17,7 @@ $english = array(
     'pleiofile:parent_folder' => 'Upper folder',
     'pleiofile:number_items' => 'Number of items',
     'file_tools:forms:edit:parent' => 'Upper folder',
+    'pleiofile:update_children' => 'Change permissions of children',
     'pleiofile:files' => 'File(s)',
     'pleiofile:item_selected' => 'item selected.',
     'pleiofile:items_selected' => 'items selected.',

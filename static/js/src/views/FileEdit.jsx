@@ -11,6 +11,7 @@ class FileEdit extends React.Component {
         this.changeTitle = this.changeTitle.bind(this);
         this.changeAccessId = this.changeAccessId.bind(this);
         this.changeWriteAccessId = this.changeWriteAccessId.bind(this);
+        this.changeFile = this.changeFile.bind(this);
         this.changeTags = this.changeTags.bind(this);
         this.changeParentGuid = this.changeParentGuid.bind(this);
 
@@ -23,6 +24,7 @@ class FileEdit extends React.Component {
             accessId: null,
             writeAccessId: null,
             tags: '',
+            file: null,
             parentGuid: null
         };
     }
@@ -34,6 +36,7 @@ class FileEdit extends React.Component {
                 guid: currentItem.guid,
                 title: currentItem.title,
                 accessId: currentItem.accessId,
+                file: null,
                 writeAccessId: currentItem.writeAccessId,
                 tags: currentItem.tags,
                 parentGuid: nextProps.parent.guid
@@ -43,6 +46,7 @@ class FileEdit extends React.Component {
                 guid: null,
                 title: "",
                 tags: "",
+                file: null,
                 accessId: nextProps.parent.accessId,
                 writeAccessId: 0,
                 parentGuid: nextProps.parent.guid
@@ -59,7 +63,8 @@ class FileEdit extends React.Component {
                     </Modal.Header>
                     <Modal.Body>
                         <form onSubmit={this.onEdit}>
-                            <Input type="text" label={elgg.echo('pleiofile:name')} name="title" value={this.state.title} onChange={this.changeTitle} autoFocus="true" />
+                            <Input type="text" label={elgg.echo('pleiofile:name')} name="title" value={this.state.title} onChange={this.changeTitle} autoFocus="true" required />
+                            <Input type="file" label={elgg.echo('pleiofile:edit_file')} name="files" onChange={this.changeFile} />
                             <AccessSelect ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId} />
                             <AccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
                             <Input type="text" label={elgg.echo('tags')} name="tags" value={this.state.tags} onChange={this.changeTags} />
@@ -82,6 +87,7 @@ class FileEdit extends React.Component {
         this.props.dispatch(editFile({
             guid: this.state.guid,
             title: this.state.title,
+            file: this.state.file,
             accessId: this.state.accessId,
             writeAccessId: this.state.writeAccessId,
             tags: this.state.tags,
@@ -93,6 +99,10 @@ class FileEdit extends React.Component {
 
     changeTitle(e) {
         this.setState({title: e.target.value});
+    }
+
+    changeFile(e) {
+        this.setState({file: e.target.files[0]});
     }
 
     changeAccessId(e) {
