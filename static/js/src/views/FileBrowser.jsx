@@ -105,6 +105,14 @@ class FileBrowser extends React.Component {
             );
         }
 
+        if (this.props.folder.errorCode == 404) {
+            return (
+                <div>
+                    {elgg.echo("pleiofile:could_not_find")}
+                </div>
+            )
+        }
+
         return (
             <div>
                 <div className="pleiofile-breadcrumb">

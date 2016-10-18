@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import $jq19 from 'jquery';
 import { hideModal, createFolder, editFolder } from '../actions';
 import AccessSelect from './elements/AccessSelect';
+import WriteAccessSelect from './elements/WriteAccessSelect';
 
 class FolderEdit extends React.Component {
     constructor(props) {
@@ -88,7 +89,7 @@ class FolderEdit extends React.Component {
                         <form onSubmit={this.onCreate}>
                             <Input type="text" ref="title" label={elgg.echo('pleiofile:name')} onChange={this.changeTitle} value={this.state.title} autoFocus={true} />
                             <AccessSelect ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId} />
-                            <AccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
+                            <WriteAccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
                             {updateChildren}
                             <Input type="text" label={elgg.echo('tags')} name="tags" onChange={this.changeTags} value={this.state.tags} />
                             {folderSelect}

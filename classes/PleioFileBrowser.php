@@ -189,8 +189,9 @@ class PleioFileBrowser {
             }
         }
 
-        $folder->write_access_id = $params['write_access_id'];
-        if (!$folder->write_access_id) {
+        if (isset($params['write_access_id'])) {
+            $folder->write_access_id = $params['write_access_id'];
+        } else {
             $folder->write_access_id = ACCESS_PRIVATE;
         }
 
@@ -202,11 +203,11 @@ class PleioFileBrowser {
             $folder->title = $params['title'];
         }
 
-        if ($params['access_id']) {
+        if (isset($params['access_id'])) {
             $folder->access_id = $params['access_id'];
         }
 
-        if ($params['write_access_id']) {
+        if (isset($params['write_access_id'])) {
             $folder->write_access_id = $params['write_access_id'];
         } else {
             $folder->write_access_id = ACCESS_PRIVATE;
@@ -271,14 +272,14 @@ class PleioFileBrowser {
             $container = $parent->getContainerEntity();
         }
 
-        if (!$params['access_id']) {
+        if (isset($params['access_id'])) {
+            $access_id = $params['access_id'];
+        } else {
             if ($parent instanceof ElggObject) { // lower level folder
                 $access_id = $parent->access_id;
             } elseif ($parent instanceof ElggGroup) { // top level folder
                 $access_id = $parent->group_acl;
             }
-        } else {
-            $access_id = $params['access_id'];
         }
 
         $file = new FilePluginFile();
@@ -325,11 +326,11 @@ class PleioFileBrowser {
             $file->title = $params['title'];
         }
 
-        if ($params['access_id']) {
+        if (isset($params['access_id'])) {
             $file->access_id = $params['access_id'];
         }
 
-        if ($params['write_access_id']) {
+        if (isset($params['write_access_id'])) {
             $file->write_access_id = $params['write_access_id'];
         } else {
             $file->write_access_id = ACCESS_PRIVATE;

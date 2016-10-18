@@ -153,6 +153,11 @@ class FileList extends React.Component {
     }
 
     deleteItems() {
+        let result = confirm(elgg.echo("pleiofile:sure"));
+        if (!result) {
+            return;
+        }
+
         var total = this.state.selected.size;
         this.state.selected.map(function(item) {
             $jq19.ajax({

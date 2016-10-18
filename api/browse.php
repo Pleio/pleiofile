@@ -18,6 +18,10 @@ if ($offset < 0) {
 
 if ($container_guid) {
     $container = get_entity($container_guid);
+    if (!$container) {
+        http_response_code(404);
+        exit();
+    }
 } else {
     $container = null;
 }

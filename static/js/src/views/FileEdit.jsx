@@ -4,6 +4,7 @@ import { Modal, Input, ButtonInput } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { editFile, hideModal } from '../actions';
 import AccessSelect from './elements/AccessSelect';
+import WriteAccessSelect from './elements/WriteAccessSelect';
 
 class FileEdit extends React.Component {
     constructor(props) {
@@ -66,7 +67,7 @@ class FileEdit extends React.Component {
                             <Input type="text" label={elgg.echo('pleiofile:name')} name="title" value={this.state.title} onChange={this.changeTitle} autoFocus="true" required />
                             <Input type="file" label={elgg.echo('pleiofile:edit_file')} name="files" onChange={this.changeFile} />
                             <AccessSelect ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId} />
-                            <AccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
+                            <WriteAccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
                             <Input type="text" label={elgg.echo('tags')} name="tags" value={this.state.tags} onChange={this.changeTags} />
                             <FolderSelect folderGuid={this.state.guid} parentGuid={this.state.parentGuid} onChange={this.changeParentGuid} />
                             <ButtonInput type="submit" bsStyle="primary" value={elgg.echo('edit')} />

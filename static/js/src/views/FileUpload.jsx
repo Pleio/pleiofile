@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import $jq19 from 'jquery';
 import { fetchFolder, hideModal } from '../actions';
 import AccessSelect from './elements/AccessSelect';
+import WriteAccessSelect from './elements/WriteAccessSelect';
 
 class FileUpload extends React.Component {
     constructor(props) {
@@ -97,7 +98,7 @@ class FileUpload extends React.Component {
                         <form onSubmit={this.onUpload}>
                             <Input type="file" multiple label={elgg.echo('pleiofile:files')} name="files" onChange={this.changeFiles} />
                             <AccessSelect ref="accessId" label={elgg.echo('access:read')} value={this.state.accessId} onChange={this.changeAccessId} />
-                            <AccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
+                            <WriteAccessSelect ref="writeAccessId" label={elgg.echo('access:write')} value={this.state.writeAccessId} onChange={this.changeWriteAccessId} />
                             <Input type="text" label={elgg.echo('tags')} name="tags" onChange={this.changeTags} value={this.state.tags} />
                             {uploadButton}
                         </form>

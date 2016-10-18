@@ -10,6 +10,8 @@ export const REQUEST_EDIT_FILE = 'EDIT_FILE'
 export const SHOW_MODAL = 'SHOW_MODAL'
 export const HIDE_MODAL = 'HIDE_MODAL'
 
+export const SHOW_ERROR = 'SHOW_ERROR'
+
 export const REQUEST_FOLDER = 'REQUEST_FOLDER'
 export const RECEIVE_FOLDER = 'RECEIVE_FOLDER'
 
@@ -27,6 +29,9 @@ export function fetchFolder(guid, limit = 100, offset = 0) {
         })
         .then(response => response.json())
         .then(json => dispatch(receiveFolder(json, limit, offset)))
+        .catch(function(error) {
+            dispatch(showError(404))
+        })
     }
 }
 
@@ -43,6 +48,13 @@ function receiveFolder(folder, limit, offset) {
         limit: limit,
         offset: offset,
         receivedAt: Date.now()
+    }
+}
+
+function showError(code) {
+    return {
+        type: SHOW_ERROR,
+        code
     }
 }
 
