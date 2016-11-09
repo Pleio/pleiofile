@@ -32,8 +32,8 @@ class FileBrowser extends React.Component {
 
         this.openFolder(guid);
 
-        if (_appData['containerGuid']) {
-            this.props.dispatch(fetchFolderTree(_appData['containerGuid']));
+        if (this.props.containerGuid) {
+            this.props.dispatch(fetchFolderTree(this.props.containerGuid));
         }
     }
 
@@ -42,7 +42,9 @@ class FileBrowser extends React.Component {
     }
 
     openFolder(guid, limit = 100, offset = 0) {
-        window.location.hash = guid;
+        if (!_appData['isWidget']) {
+            window.location.hash = guid;
+        }
 
         if (_appData['limit']) {
             limit = _appData['limit'];

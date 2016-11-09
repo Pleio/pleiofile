@@ -37,7 +37,7 @@ function pleiofile_init() {
     elgg_register_plugin_hook_handler("register", "menu:title", "pleiofile_menu_title_hook_handler");
     elgg_register_plugin_hook_handler("register", "menu:filter", "pleiofile_menu_filter_hook_handler");
 
-    elgg_register_widget_type("file_tree", elgg_echo("widgets:file_tree:title"), elgg_echo("widgets:file_tree:description"), "dashboard,profile,groups", true);
+    elgg_register_widget_type("group_files", elgg_echo("widgets:file_tree:title"), elgg_echo("widgets:file_tree:description"), "dashboard,profile,groups", true);
 
     elgg_register_entity_url_handler("object", PLEIOFILE_FILE_OBJECT, "pleiofile_file_url_handler");
     elgg_register_entity_url_handler("object", PLEIOFILE_FOLDER_OBJECT, "pleiofile_folder_url_handler");

@@ -4,9 +4,11 @@ elgg_load_js('pleiofile');
 
 $widget = elgg_extract("entity", $vars);
 $container = $widget->getContainerEntity();
+$homeGuid = $widget->folder ? $widget->folder : $container->guid;
 
 $data = array(
     'containerGuid' => $container->guid,
+    'homeGuid' => $homeGuid,
     'accessIds' => get_write_access_array(),
     'isWidget' => true,
     'odt_enabled' => elgg_is_active_plugin('odt_editor') ? true : false,
@@ -14,4 +16,4 @@ $data = array(
 );
 
 echo "<script> var _appData = " . json_encode($data) . "; </script>";
-echo "<div id=\"pleiofile\"></div>";
+echo "<div class=\"pleiofile\" data-containerguid=\"" . (int) $container->guid . "\" data-homeguid=\"" . (int) $homeGuid . "\"></div>";

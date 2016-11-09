@@ -10,6 +10,8 @@ class FileList extends React.Component {
         super(props);
         this.onKeyDown = this.onKeyDown.bind(this);
         this.onKeyUp = this.onKeyUp.bind(this);
+        this.onTouchStart = this.onTouchStart.bind(this);
+        this.onTouchEnd = this.onTouchEnd.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseOver = this.onMouseOver.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
@@ -33,10 +35,9 @@ class FileList extends React.Component {
     componentDidMount() {
         window.addEventListener("keydown", this.onKeyDown);
         window.addEventListener("keyup", this.onKeyUp);
-        window.addEventListener("mouseup", this.onMouseUp);
 
         // clear selection when clicking outside list
-        $('html').mousedown(function(e) {
+        $jq19('html').on("mousedown touchend", function(e) {
             var table = document.getElementById('pleiofile-table');
             if (!$.contains(table, e.target) && !$('body').hasClass('modal-open')) {
                 this.setState({
@@ -96,6 +97,14 @@ class FileList extends React.Component {
         });
     }
 
+    onTouchStart(e, item) {
+        this.setState({
+            selecting: true,
+            selectBegin: item,
+            selectEnd: item
+        })
+    }
+
     onMouseOver(e, item) {
         if (this.state.selecting) {
             this.setState({
@@ -110,6 +119,15 @@ class FileList extends React.Component {
                 selecting: false,
                 selectEnd: item
             });
+        }
+    }
+
+    onTouchEnd(e, item) {
+        if (this.state.selecting) {
+            this.setState({
+                selecting: false,
+                selectEnd: item
+            })
         }
     }
 
@@ -187,6 +205,8 @@ class FileList extends React.Component {
                 key={item.guid}
                 item={item}
                 selected={this.state.selected.has(item)}
+                onTouchStart={this.onTouchStart}
+                onTouchEnd={this.onTouchEnd}
                 onMouseDown={this.onMouseDown}
                 onMouseOver={this.onMouseOver}
                 onMouseUp={this.onMouseUp}

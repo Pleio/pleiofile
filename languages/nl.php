@@ -13,6 +13,7 @@ $dutch = array(
     'pleiofile:create_folder' => 'Nieuwe map',
     'pleiofile:edit_folder' => 'Wijzig map',
     'pleiofile:edit_file' => 'Wijzig bestand',
+    'pleiofile:show_folder' => 'Toon map',
     'pleiofile:sure' => 'Weet je zeker dat je de items wil verwijderen?',
     'pleiofile:main_folder' => 'Hoofdmap',
     'pleiofile:parent_folder' => 'Bovenliggende map',

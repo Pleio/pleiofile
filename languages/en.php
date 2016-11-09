@@ -13,6 +13,7 @@ $english = array(
     'pleiofile:create_folder' => 'Create folder',
     'pleiofile:edit_folder' => 'Edit folder',
     'pleiofile:edit_file' => 'Edit file',
+    'pleiofile:show_folder' => 'Show folder',
     'pleiofile:sure' => 'Are you sure you want to delete the items?',
     'pleiofile:main_folder' => 'Main folder',
     'pleiofile:parent_folder' => 'Upper folder',

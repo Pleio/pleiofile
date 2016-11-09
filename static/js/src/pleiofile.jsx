@@ -7,16 +7,17 @@ import rootReducer from './reducers';
 import React from 'react';
 import 'babel-polyfill';
 
-const loggerMiddleware = createLogger();
-let store = createStore(rootReducer, {}, applyMiddleware(
-    thunkMiddleware,
-    loggerMiddleware
-));
-
 var ReactDOM = require('react-dom');
-ReactDOM.render(
-    <Provider store={store}>
-        <FileBrowser homeGuid={_appData['containerGuid']} />
-    </Provider>,
-    document.getElementById('pleiofile')
-);
+
+$('.pleiofile').each(function() {
+    const loggerMiddleware = createLogger();
+    let store = createStore(rootReducer, {}, applyMiddleware(
+        thunkMiddleware,
+        loggerMiddleware
+    ));
+
+    ReactDOM.render(
+        <Provider store={store}>
+            <FileBrowser containerGuid={$(this).data("containerguid")} homeGuid={$(this).data("homeguid")} />
+        </Provider>, this)
+})

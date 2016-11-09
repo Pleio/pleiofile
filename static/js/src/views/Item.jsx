@@ -10,6 +10,8 @@ class Item extends React.Component {
         this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseOver = this.onMouseOver.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
+        this.onTouchStart = this.onTouchStart.bind(this);
+        this.onTouchEnd = this.onTouchEnd.bind(this);
 
         this.getAccessLabel = this.getAccessLabel.bind(this);
     }
@@ -37,6 +39,14 @@ class Item extends React.Component {
         this.props.onMouseUp(e, this.props.item);
     }
 
+    onTouchStart(e) {
+        this.props.onTouchStart(e, this.props.item);
+    }
+
+    onTouchEnd(e) {
+        this.props.onTouchEnd(e, this.props.item);
+    }
+
     getAccessLabel(accessId) {
         if (accessId === 0) {
             return this.props.item.createdByName;
@@ -55,7 +65,7 @@ class Item extends React.Component {
         if (this.props.item['subtype'] === "folder") {
             if (!_appData['isWidget']) {
                 return (
-                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
                         <td>
                             <a href="javascript:void(0);" onMouseDown={this.onLinkMouseDown} onClick={this.onOpenFolder}>
                                 <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
@@ -69,7 +79,7 @@ class Item extends React.Component {
                 );
             } else {
                 return (
-                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
                         <td>
                             <a href="javascript:void(0);" onMouseDown={this.onLinkMouseDown} onClick={this.onOpenFolder}>
                                 <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
@@ -85,7 +95,7 @@ class Item extends React.Component {
 
             if (!_appData['isWidget']) {
                 return (
-                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
                         <td>
                             <a href={this.props.item.url}>
                                 <span className="glyphicon glyphicon-file"></span>&nbsp;
@@ -99,7 +109,7 @@ class Item extends React.Component {
                 );
             } else {
                 return (
-                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} className={cssClass}>
+                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
                         <td>
                             <a href={this.props.item.url}>
                                 <span className="glyphicon glyphicon-file"></span>&nbsp;
