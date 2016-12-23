@@ -8,7 +8,13 @@ if (!$parent) {
     exit();
 }
 
-if (!$parent->canWriteToContainer()) {
+if ($parent instanceof ElggUser | $parent instanceof ElggGroup) {
+    $container = $parent;
+} else {
+    $container = $parent->getContainerEntity();
+}
+
+if (!$container->canWriteToContainer()) {
     http_response_code(403);
     exit();
 }

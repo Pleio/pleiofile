@@ -8,9 +8,11 @@ function pleiofile_permissions_check($hook_name, $entity_type, $return_value, $p
         return $return_value;
     }
 
-    if ($entity->getType() !== "object" | !in_array($entity->getSubtype(), array(PLEIOFILE_FILE_OBJECT, PLEIOFILE_FOLDER_OBJECT))) {
+    if ($subtype && !in_array($subtype, array(PLEIOFILE_FILE_OBJECT, PLEIOFILE_FOLDER_OBJECT))) {
         return $return_value;
     }
+
+    // by default Elgg allows only owners (and admins) to write to entities, we would like to extend this with users in list $entity->write_access_id
 
     if ($return_value === true) {
         return true;
@@ -23,7 +25,7 @@ function pleiofile_permissions_check($hook_name, $entity_type, $return_value, $p
 
     switch ($write_permission) {
         case ACCESS_PRIVATE:
-            return;
+            return $return_value;
             break;
         case ACCESS_FRIENDS:
             $owner = $params['entity']->getOwnerEntity();
@@ -38,18 +40,6 @@ function pleiofile_permissions_check($hook_name, $entity_type, $return_value, $p
                 return true;
             }
             break;
-    }
-
-    $container = $entity->getContainerEntity();
-    if (!$container instanceof ElggGroup) {
-        return false;
-    }
-
-    $container = $entity->getContainerEntity();
-    if ($container->isMember($user) && $container->pleiofile_management_can_edit_enable === "yes") {
-        return true;
-    } else {
-        return false;
     }
 }
 
@@ -66,19 +56,14 @@ function pleiofile_container_permissions_check($hook_name, $entity_type, $return
         return $return_value;
     }
 
-    if ($return_value === false) {
-        return false;
-    }
-
     if (!$container instanceof ElggGroup) {
-        return $return_value;
+        return $return_value;        
     }
 
+    // by default Elgg allows all members of the group to write to the group. The admin has a switch to disable writing files and folders for all users entirely.
     if (!$container->canEdit() && $container->pleiofile_management_can_add_enable === "no") {
         return false;
     }
-
-    return $return_value;
 }
 
 function pleiofile_folder_icon_hook($hook, $type, $returnvalue, $params) {
