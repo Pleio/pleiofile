@@ -26,7 +26,7 @@ class PleioFileBrowser {
             'type' => 'object',
             'subtype' => 'folder',
             'container_guid' => $container->guid,
-            'limit' => 2500,
+            'limit' => 4000,
             'joins' => "JOIN {$db_prefix}objects_entity oe ON e.guid = oe.guid",
             'order_by' => 'oe.title ASC'
         );
