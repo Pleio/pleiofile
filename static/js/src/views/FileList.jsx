@@ -284,7 +284,8 @@ class FileList extends React.Component {
                     'title': elgg.echo('pleiofile:name'),
                     'timeUpdated': elgg.echo('pleiofile:modified_at'),
                     'accessId': elgg.echo('pleiofile:shared_with'),
-                    'writeAccessId': elgg.echo('pleiofile:write_access')
+                    'writeAccessId': elgg.echo('pleiofile:write_access'),
+                    '': ''
                 };
             } else {
                 var columns = {
@@ -320,14 +321,14 @@ class FileList extends React.Component {
 
             if (_appData['isWidget']) {
                 var header = (
-                    <th colSpan="4">
+                    <th colSpan="5">
                         {view}
                         {edit}
                     </th>
                 );
             } else {
                 var header = (
-                    <th colSpan="4">
+                    <th colSpan="5">
                         {this.state.selected.size} {message}&nbsp;&nbsp;
                         {view}
                         {edit}

@@ -89,12 +89,22 @@ $json['offset'] = $offset;
 
 $json['children'] = array();
 foreach ($children as $entity) {
+
+    $subtype = $entity->getSubtype();
+
+    if ($subtype === "file") {
+        $commentsCount = (int) $entity->countAnnotations("generic_comment");
+    } else {
+        $commentsCount = 0;
+    }
+
     $json['children'][] = array(
         'guid' => $entity->guid,
-        'subtype' => $entity->getSubtype(),
+        'subtype' => $subtype,
         'title' => htmlspecialchars_decode($entity->title, ENT_QUOTES),
         'accessId' => (int) $entity->access_id,
         'writeAccessId' => (int) ($entity->write_access_id) ? $entity->write_access_id : ACCESS_PRIVATE,
+        'commentsCount' => $commentsCount,
         'canEdit' => $entity->canEdit(),
         'createdByGuid' => $entity->getOwnerEntity()->guid,
         'createdByName' => $entity->getOwnerEntity()->name,

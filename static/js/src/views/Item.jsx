@@ -75,6 +75,7 @@ class Item extends React.Component {
                         <td>-</td>
                         <td>{this.getAccessLabel(this.props.item.accessId)}</td>
                         <td>{this.getAccessLabel(this.props.item.writeAccessId)}</td>
+                        <td></td>
                     </tr>
                 );
             } else {
@@ -93,6 +94,15 @@ class Item extends React.Component {
         } else {
             let modifiedAt = moment(this.props.item['timeUpdated']).format("DD-MM-YY HH:mm");
 
+            let comments
+            if (this.props.item.commentsCount > 0) {
+                comments = (
+                    <a href={`/file/view/${this.props.item.guid}`}>
+                        <span className="glyphicon glyphicon-comment"></span>&nbsp;{this.props.item.commentsCount}
+                    </a>
+                )
+            }
+
             if (!_appData['isWidget']) {
                 return (
                     <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
@@ -105,6 +115,7 @@ class Item extends React.Component {
                         <td>{modifiedAt}</td>
                         <td>{this.getAccessLabel(this.props.item.accessId)}</td>
                         <td>{this.getAccessLabel(this.props.item.writeAccessId)}</td>
+                        <td>{comments}</td>
                     </tr>
                 );
             } else {
