@@ -1,11 +1,12 @@
 import { combineReducers } from 'redux'
-import { SHOW_MODAL, HIDE_MODAL, CHANGE_SORT, REQUEST_FOLDER, RECEIVE_FOLDER, RECEIVE_FOLDER_TREE, SHOW_ERROR } from './actions'
+import { SHOW_MODAL, HIDE_MODAL, DROP_FILES, CHANGE_SORT, REQUEST_FOLDER, RECEIVE_FOLDER, RECEIVE_FOLDER_TREE, SHOW_ERROR } from './actions'
 import { OrderedSet } from 'immutable';
 import { sortItems } from './helpers';
 
 function modal(state = {
     current: null,
-    currentItem: undefined
+    currentItem: undefined,
+    dropFiles: []
 }, action) {
     switch (action.type) {
         case SHOW_MODAL:
@@ -17,6 +18,12 @@ function modal(state = {
             return Object.assign({}, state, {
                 current: null,
                 currentItem: undefined
+            })
+        case DROP_FILES:
+            return Object.assign({}, state, {
+                current: "fileUpload",
+                currentItem: undefined,
+                dropFiles: action.dropFiles
             })
         default:
             return state

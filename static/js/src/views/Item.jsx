@@ -7,13 +7,12 @@ class Item extends React.Component {
     constructor(props) {
         super(props);
         this.onOpenFolder = this.onOpenFolder.bind(this);
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseOver = this.onMouseOver.bind(this);
-        this.onMouseUp = this.onMouseUp.bind(this);
-        this.onTouchStart = this.onTouchStart.bind(this);
-        this.onTouchEnd = this.onTouchEnd.bind(this);
-
+        this.onToggleSelect = this.onToggleSelect.bind(this);
         this.getAccessLabel = this.getAccessLabel.bind(this);
+    }
+
+    onToggleSelect(e) {
+        this.props.onToggleSelect(this.props.item, e.target.checked);
     }
 
     onOpenFolder(e) {
@@ -22,29 +21,6 @@ class Item extends React.Component {
 
     onLinkMouseDown(e) {
         clickOnLink = true;
-    }
-
-    onMouseDown(e) {
-        if (!clickOnLink) {
-            this.props.onMouseDown(e, this.props.item);
-        }
-    }
-
-    onMouseOver(e) {
-        this.props.onMouseOver(e, this.props.item);
-    }
-
-    onMouseUp(e) {
-        clickOnLink = false;
-        this.props.onMouseUp(e, this.props.item);
-    }
-
-    onTouchStart(e) {
-        this.props.onTouchStart(e, this.props.item);
-    }
-
-    onTouchEnd(e) {
-        this.props.onTouchEnd(e, this.props.item);
     }
 
     getAccessLabel(accessId) {
@@ -65,7 +41,8 @@ class Item extends React.Component {
         if (this.props.item['subtype'] === "folder") {
             if (!_appData['isWidget']) {
                 return (
-                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
+                    <tr className={cssClass}>
+                        <td><input type="checkbox" className="pleiofile-check" name={`select-${this.props.item.guid}`} onChange={this.onToggleSelect} checked={this.props.selected} /></td>
                         <td>
                             <a href="javascript:void(0);" onMouseDown={this.onLinkMouseDown} onClick={this.onOpenFolder}>
                                 <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
@@ -80,7 +57,7 @@ class Item extends React.Component {
                 );
             } else {
                 return (
-                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
+                    <tr className={cssClass}>
                         <td>
                             <a href="javascript:void(0);" onMouseDown={this.onLinkMouseDown} onClick={this.onOpenFolder}>
                                 <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
@@ -105,7 +82,8 @@ class Item extends React.Component {
 
             if (!_appData['isWidget']) {
                 return (
-                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
+                    <tr className={cssClass}>
+                        <td><input type="checkbox" className="pleiofile-check" name={`select-${this.props.item.guid}`} onChange={this.onToggleSelect} checked={this.props.selected} /></td>
                         <td>
                             <a href={this.props.item.url}>
                                 <span className="glyphicon glyphicon-file"></span>&nbsp;
@@ -120,7 +98,7 @@ class Item extends React.Component {
                 );
             } else {
                 return (
-                    <tr onMouseDown={this.onMouseDown} onMouseOver={this.onMouseOver} onMouseUp={this.onMouseUp} onTouchStart={this.onTouchStart} onTouchEnd={this.onTouchEnd} className={cssClass}>
+                    <tr className={cssClass}>
                         <td>
                             <a href={this.props.item.url}>
                                 <span className="glyphicon glyphicon-file"></span>&nbsp;

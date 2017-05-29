@@ -126,9 +126,10 @@ class FileBrowser extends React.Component {
                     onComplete={this.refreshFolder}
                     onOpenFolder={this.openFolder}
                     onEditFolder={this.editFolder}
+                    onFilesDrop={this.onFilesDrop}
                 />
                 <Pagination total={this.props.folder.total} offset={this.props.folder.offset} limit={this.props.folder.limit} folderGuid={this.props.folder.guid} onOpenFolder={this.openFolder} />
-                <FileUpload onComplete={this.refreshFolder} />
+                <FileUpload ref="fileUpload" onComplete={this.refreshFolder} />
                 <FolderEdit />
                 <FileEdit />
             </div>

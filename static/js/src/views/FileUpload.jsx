@@ -46,7 +46,7 @@ class FileUpload extends React.Component {
             uploading: "waiting_for_input",
             accessId: nextProps.parent.accessId,
             writeAccessId: nextProps.parent.writeAccessId,
-            files: [],
+            files: nextProps.modal.dropFiles || [],
             succeeded: new Set(),
             failed: new Set(),
             tags: ""

@@ -47,3 +47,12 @@
     overflow: scroll;
     overflow-x: hidden;
 }
+
+#pleiofile-table .pleiofile-check {
+    visibility: hidden;
+}
+
+#pleiofile-table.selected .pleiofile-check,
+#pleiofile-table tr:hover .pleiofile-check {
+    visibility: visible;
+}

@@ -7,6 +7,8 @@ export const REQUEST_EDIT_FOLDER = 'REQUEST_EDIT_FOLDER'
 export const REQUEST_UPLOAD_FILE = 'UPLOAD_FILE'
 export const REQUEST_EDIT_FILE = 'EDIT_FILE'
 
+export const DROP_FILES = 'DROP_FILES'
+
 export const SHOW_MODAL = 'SHOW_MODAL'
 export const HIDE_MODAL = 'HIDE_MODAL'
 
@@ -230,5 +232,12 @@ export function hideModal(modal, item) {
         type: HIDE_MODAL,
         modal,
         item
+    }
+}
+
+export function dropFiles(files) {
+    return {
+        type: DROP_FILES,
+        dropFiles: files
     }
 }

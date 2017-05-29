@@ -3,131 +3,38 @@ import { OrderedSet } from 'immutable';
 import Item from './Item';
 import $jq19 from 'jquery';
 import { connect } from 'react-redux';
-import { changeSort, showModal } from '../actions';
+import { changeSort, showModal, dropFiles } from '../actions';
+import classnames from "classnames";
 
 class FileList extends React.Component {
     constructor(props) {
         super(props);
-        this.onKeyDown = this.onKeyDown.bind(this);
-        this.onKeyUp = this.onKeyUp.bind(this);
-        this.onTouchStart = this.onTouchStart.bind(this);
-        this.onTouchEnd = this.onTouchEnd.bind(this);
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseOver = this.onMouseOver.bind(this);
-        this.onMouseUp = this.onMouseUp.bind(this);
         this.onSort = this.onSort.bind(this);
+        this.onDrop = this.onDrop.bind(this);
+
         this.view = this.view.bind(this);
         this.download = this.download.bind(this);
         this.bulkDownload = this.bulkDownload.bind(this);
         this.editItem = this.editItem.bind(this);
         this.deleteItems = this.deleteItems.bind(this);
         this.onOpenFolder = this.onOpenFolder.bind(this);
+        this.onToggleSelect = this.onToggleSelect.bind(this);
 
-        this.state = {
-            selected: new OrderedSet(),
-            shiftKey: false,
-            selecting: false,
-            selectBegin: null,
-            selectEnd: null
-        };
-    }
-
-    componentDidMount() {
-        window.addEventListener("keydown", this.onKeyDown);
-        window.addEventListener("keyup", this.onKeyUp);
-
-        // clear selection when clicking outside list
-        $jq19('html').on("mousedown touchend", function(e) {
-            var table = document.getElementById('pleiofile-table');
-            if (!$.contains(table, e.target) && !$('body').hasClass('modal-open')) {
-                this.setState({
-                    selected: new OrderedSet()
-                });
-            }
-        }.bind(this));
+        this.state = { selected: new OrderedSet() };
     }
 
     componentWillUpdate(nextProps, nextState) {
-        // do not select site text when selecting elements
-        if (nextState.selecting) {
-            $('html').disableSelection();
-        } else {
-            $('html').enableSelection();
-        }
-
         // clear selection when changing folders
-        if (nextProps.items !== this.items) {
-            this.state.selected = new OrderedSet();
-        }
-
-        if (nextState.selecting) {
-            var seq = this.props.items.toIndexedSeq();
-            var beginIndex = seq.findIndex(v => v == nextState.selectBegin);
-            var endIndex = seq.findIndex(v => v == nextState.selectEnd);
-
-            if (beginIndex < endIndex) {
-                nextState.selected = this.props.items.slice(beginIndex, endIndex + 1);
-            } else {
-                nextState.selected = this.props.items.slice(endIndex, beginIndex + 1);
-            }
+        if (nextProps.items !== this.props.items) {
+            this.setState({ selected: new OrderedSet() });
         }
     }
 
-    onKeyDown(e) {
-        if (e.shiftKey) {
-            this.setState({
-                shiftKey: true
-            });
-        }
-    }
-
-    onKeyUp(e) {
-        if (this.state.shiftKey) {
-            this.setState({
-                shiftKey: false
-            });
-        }
-    }
-
-    onMouseDown(e, item) {
-        this.setState({
-            selecting: true,
-            selectBegin: item,
-            selectEnd: item
-        });
-    }
-
-    onTouchStart(e, item) {
-        this.setState({
-            selecting: true,
-            selectBegin: item,
-            selectEnd: item
-        })
-    }
-
-    onMouseOver(e, item) {
-        if (this.state.selecting) {
-            this.setState({
-                selectEnd: item
-            });
-        }
-    }
-
-    onMouseUp(e, item) {
-        if (this.state.selecting) {
-            this.setState({
-                selecting: false,
-                selectEnd: item
-            });
-        }
-    }
-
-    onTouchEnd(e, item) {
-        if (this.state.selecting) {
-            this.setState({
-                selecting: false,
-                selectEnd: item
-            })
+    onToggleSelect(item, checked) {
+        if (checked) {
+            this.setState({ selected: this.state.selected.add(item) });
+        } else {
+            this.setState({ selected: this.state.selected.delete(item) });
         }
     }
 
@@ -137,6 +44,31 @@ class FileList extends React.Component {
         } else {
             this.props.dispatch(changeSort(on, true));
         }
+    }
+
+    onDragOver(e) {
+        // here to prevent default browser behavior
+        e.preventDefault();
+    }
+
+    onDrop(e) {
+        e.preventDefault();
+        let files = [];
+
+        const dt = e.dataTransfer;
+        if (dt.items) {
+            for (var i=0; i < dt.items.length; i++) {
+                if (dt.items[i].kind == "file" && dt.items[i].type !== "") {
+                    files.push(dt.files[i]);
+                }
+            }
+        } else {
+            for (var i=0; i < dt.files.length; i++) {
+                files.push(dt.files[i]);
+            }
+        }
+
+        this.props.dispatch(dropFiles(files));
     }
 
     view() {
@@ -205,11 +137,7 @@ class FileList extends React.Component {
                 key={item.guid}
                 item={item}
                 selected={this.state.selected.has(item)}
-                onTouchStart={this.onTouchStart}
-                onTouchEnd={this.onTouchEnd}
-                onMouseDown={this.onMouseDown}
-                onMouseOver={this.onMouseOver}
-                onMouseUp={this.onMouseUp}
+                onToggleSelect={this.onToggleSelect}
                 onOpenFolder={this.onOpenFolder} />);
         }.bind(this));
 
@@ -281,11 +209,12 @@ class FileList extends React.Component {
         if (this.state.selected.size === 0) {
             if (!_appData['isWidget']) {
                 var columns = {
+                    'sort': '',
                     'title': elgg.echo('pleiofile:name'),
                     'timeUpdated': elgg.echo('pleiofile:modified_at'),
                     'accessId': elgg.echo('pleiofile:shared_with'),
                     'writeAccessId': elgg.echo('pleiofile:write_access'),
-                    '': ''
+                    'comments': ''
                 };
             } else {
                 var columns = {
@@ -321,14 +250,14 @@ class FileList extends React.Component {
 
             if (_appData['isWidget']) {
                 var header = (
-                    <th colSpan="5">
+                    <th colSpan="6">
                         {view}
                         {edit}
                     </th>
                 );
             } else {
                 var header = (
-                    <th colSpan="5">
+                    <th colSpan="6">
                         {this.state.selected.size} {message}&nbsp;&nbsp;
                         {view}
                         {edit}
@@ -338,16 +267,18 @@ class FileList extends React.Component {
         }
 
         return (
-            <table id="pleiofile-table" className="table table-hover">
-            <thead>
-                <tr>
-                    {header}
-                </tr>
-            </thead>
-            <tbody>
-                {items}
-            </tbody>
-            </table>
+            <div>
+                <table id="pleiofile-table" className={classnames({"table table-hover": true, "selected": this.state.selected.size > 0})} onDragOver={this.onDragOver} onDrop={this.onDrop}>
+                    <thead>
+                        <tr>
+                            {header}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items}
+                    </tbody>
+                </table>
+            </div>
         );
     }
 }
