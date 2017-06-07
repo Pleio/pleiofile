@@ -218,6 +218,7 @@ class FileList extends React.Component {
                 };
             } else {
                 var columns = {
+                    'sort': '',
                     'title': elgg.echo('pleiofile:name'),
                     'timeUpdated': elgg.echo('pleiofile:modified_at')
                 };

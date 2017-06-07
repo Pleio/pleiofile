@@ -1,8 +1,6 @@
 import React from 'react';
 import moment from 'moment';
 
-let clickOnLink = false;
-
 class Item extends React.Component {
     constructor(props) {
         super(props);
@@ -16,12 +14,10 @@ class Item extends React.Component {
     }
 
     onOpenFolder(e) {
-        this.props.onOpenFolder(this.props.item.guid);
+        e.preventDefault()
+        this.props.onOpenFolder(this.props.item.guid)
     }
 
-    onLinkMouseDown(e) {
-        clickOnLink = true;
-    }
 
     getAccessLabel(accessId) {
         if (accessId === 0) {
@@ -44,7 +40,7 @@ class Item extends React.Component {
                     <tr className={cssClass}>
                         <td><input type="checkbox" className="pleiofile-check" name={`select-${this.props.item.guid}`} onChange={this.onToggleSelect} checked={this.props.selected} /></td>
                         <td>
-                            <a href="javascript:void(0);" onMouseDown={this.onLinkMouseDown} onClick={this.onOpenFolder}>
+                            <a href={this.props.item.url} onClick={this.onOpenFolder}>
                                 <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
                                 {this.props.item.title}
                             </a>
@@ -58,8 +54,9 @@ class Item extends React.Component {
             } else {
                 return (
                     <tr className={cssClass}>
+                        <td><input type="checkbox" className="pleiofile-check" name={`select-${this.props.item.guid}`} onChange={this.onToggleSelect} checked={this.props.selected} /></td>
                         <td>
-                            <a href="javascript:void(0);" onMouseDown={this.onLinkMouseDown} onClick={this.onOpenFolder}>
+                            <a href={this.props.item.url} onClick={this.onOpenFolder}>
                                 <span className="glyphicon glyphicon-folder-close"></span>&nbsp;
                                 {this.props.item.title}
                             </a>
@@ -99,6 +96,7 @@ class Item extends React.Component {
             } else {
                 return (
                     <tr className={cssClass}>
+                        <td><input type="checkbox" className="pleiofile-check" name={`select-${this.props.item.guid}`} onChange={this.onToggleSelect} checked={this.props.selected} /></td>
                         <td>
                             <a href={this.props.item.url}>
                                 <span className="glyphicon glyphicon-file"></span>&nbsp;
