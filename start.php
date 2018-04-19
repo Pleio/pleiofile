@@ -78,6 +78,11 @@ function pleiofile_file_route_hook($hook, $type, $returnvalue, $params) {
             $returnvalue = false;
             include(dirname(__FILE__) . "/pages/list.php");
             break;
+        case "view":
+            $returnvalue = false;
+            set_input("guid", $url[1]);
+            include(dirname(__FILE__) . "/pages/view.php");
+            break;
         case "add":
             // remain compatible with file plugin add url
             forward("/file/group/" . $url[1] . "/all");
@@ -119,15 +124,7 @@ function pleiofile_set_page_owner($url) {
 }
 
 function pleiofile_file_url_handler($entity) {
-    if (pleiofile_is_odt($entity)) {
-        return "file/view/" . $entity->getGUID() . "/" . elgg_get_friendly_title($entity->title);
-    }
-
-    if (elgg_in_context("pleiofile")) {
-        return "file/download/" . $entity->getGUID() . "/" . urlencode($entity->title);
-    } else {
-        return "file/view/" . $entity->getGUID() . "/" . elgg_get_friendly_title($entity->title);
-    }
+    return "file/view/" . $entity->getGUID() . "/" . urlencode($entity->title);
 }
 
 function pleiofile_folder_url_handler($entity) {

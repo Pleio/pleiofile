@@ -111,7 +111,7 @@ foreach ($children as $entity) {
         'tags' => $entity->tags ? $entity->tags : array(),
         'timeCreated' => date('c', $entity->time_created),
         'timeUpdated' => date('c', $entity->time_updated),
-        'url' => $entity->getURL()
+        'url' => "/file/download/{$entity->guid}/" . urlencode($entity->title)
     );
 }
 
