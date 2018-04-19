@@ -124,7 +124,7 @@ function pleiofile_file_url_handler($entity) {
     }
 
     if (elgg_in_context("pleiofile")) {
-        return "file/download/" . $entity->getGUID();
+        return "file/download/" . $entity->getGUID() . "/" . urlencode($entity->title);
     } else {
         return "file/view/" . $entity->getGUID() . "/" . elgg_get_friendly_title($entity->title);
     }
