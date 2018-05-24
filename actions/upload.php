@@ -33,11 +33,9 @@ $browser = new PleioFileBrowser();
 
 try {
     $file = $browser->createFile($parent, array(
-        'filename' => $_FILES['file']['name'],
-        'stream' => file_get_contents($_FILES['file']['tmp_name']),
+        'file' => $_FILES['file'],
         'access_id' => get_input('access_id'),
-        'write_access_id' => get_input('write_access_id'),
-        'type' => $_FILES['file']['type']
+        'write_access_id' => get_input('write_access_id')
     ));
 
     add_to_river('river/object/file/create', 'create', elgg_get_logged_in_user_guid(), $file->guid);

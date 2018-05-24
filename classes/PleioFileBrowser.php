@@ -283,7 +283,7 @@ class PleioFileBrowser {
         }
 
         $file = new FilePluginFile();
-        $file->title = $this->generateTitle($params['filename'], $parent);
+        $file->title = $this->generateTitle($params['file']['name'], $parent);
         $file->access_id = $access_id;
         $file->write_access_id = $params['write_access_id'];
         if (!$file->write_access_id) {
@@ -292,17 +292,17 @@ class PleioFileBrowser {
 
         $file->container_guid = $container->guid;
 
-        $filestorename = elgg_strtolower(time() . $params['filename']);
+        $filestorename = elgg_strtolower(time() . $params['file']['name']);
         $file->setFilename("file/" . $filestorename);
-        $file->originalfilename = $params['filename'];
+        $file->originalfilename = $params['file']['name'];
 
         // Open the file to guarantee the directory exists
         $file->open("write");
         $file->close();
 
-        file_put_contents($file->getFilenameOnFilestore(), $params['stream']);
+        move_uploaded_file($params['file']['tmp_name'], $file->getFilenameOnFilestore());
 
-        $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), $params['type']);
+        $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), $params['file']['type']);
         $file->setMimeType($mime_type);
         $file->simpletype = file_get_simple_type($mime_type);
 
@@ -340,16 +340,16 @@ class PleioFileBrowser {
             $file->tags = $params['tags'];
         }
 
-        if ($params['stream']) {
-            $file->originalfilename = $params['filename'];
+        if (isset($params['file'])) {
+            $file->originalfilename = $params['file']['name'];
 
             // Open the file to guarantee the directory exists
             $file->open("write");
             $file->close();
 
-            file_put_contents($file->getFilenameOnFilestore(), $params['stream']);
+            move_uploaded_file($params['file']['tmp_name'], $file->getFilenameOnFilestore());
 
-            $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), $params['type']);
+            $mime_type = ElggFile::detectMimeType($file->getFilenameOnFilestore(), $params['file']['type']);
             $file->setMimeType($mime_type);
             $file->simpletype = file_get_simple_type($mime_type);
             pleiofile_generate_file_thumbs($file);

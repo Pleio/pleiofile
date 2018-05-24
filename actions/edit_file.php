@@ -24,10 +24,8 @@ try {
         'parent_guid' => (int) get_input('parent_guid')
     );
 
-    if ($_FILES['file']) {
-        $options['filename'] = $_FILES['file']['name'];
-        $options['stream'] = file_get_contents($_FILES['file']['tmp_name']);
-        $options['type'] = $_FILES['file']['type'];
+    if (isset($_FILES['file'])) {
+        $options['file'] = $_FILES['file'];
     }
 
     $browser->updateFile($file, $options);
